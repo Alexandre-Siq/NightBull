@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useFocusEffect } from '@react-navigation/native';
 import { EmptyState } from '../components/EmptyState';
@@ -70,21 +69,27 @@ const PieGraphic = ({ data }) => {
   );
 };
 
-const chartConfig = {
-  backgroundGradientFrom: colors.card,
-  backgroundGradientTo: colors.card,
-  color: (opacity = 1) => `rgba(237, 237, 237, ${opacity})`,
-  decimalPlaces: 0,
-  labelColor: (opacity = 1) => `rgba(166, 166, 166, ${opacity})`,
-  propsForBackgroundLines: {
-    stroke: colors.border,
-    strokeDasharray: '4 8',
-  },
-  propsForLabels: {
-    fontFamily: fonts.monoMedium,
-    fontSize: 10,
-  },
-  barPercentage: 0.5,
+const ComparisonBars = ({ totalCost, totalValue }) => {
+  const maxValue = Math.max(totalCost, totalValue, 1);
+  const costHeight = Math.max((totalCost / maxValue) * 156, 18);
+  const valueHeight = Math.max((totalValue / maxValue) * 156, 18);
+
+  return (
+    <View style={styles.comparisonFrame}>
+      <View style={styles.barArea}>
+        <View style={styles.barGroup}>
+          <View style={[styles.comparisonBar, styles.costBar, { height: costHeight }]} />
+          <Text style={styles.barValue}>{formatCurrency(totalCost)}</Text>
+          <Text style={styles.barLabel}>Custo</Text>
+        </View>
+        <View style={styles.barGroup}>
+          <View style={[styles.comparisonBar, styles.valueBar, { height: valueHeight }]} />
+          <Text style={styles.barValue}>{formatCurrency(totalValue)}</Text>
+          <Text style={styles.barLabel}>Atual</Text>
+        </View>
+      </View>
+    </View>
+  );
 };
 
 const SummaryCard = ({ label, value, detail, tone = 'neutral' }) => {
@@ -136,8 +141,6 @@ const TypeAllocationCard = ({ item, totalValue }) => {
 };
 
 export const ReportsScreen = ({ currentUser }) => {
-  const { width } = useWindowDimensions();
-  const chartWidth = Math.max(width - 40, 280);
   const [report, setReport] = useState({ assets: [], totalCost: 0, totalValue: 0, typeAllocations: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -220,16 +223,6 @@ export const ReportsScreen = ({ currentUser }) => {
     population: Number(item.value.toFixed(2)),
     color: item.color,
   }));
-  const barData = {
-    labels: ['Custo', 'Atual'],
-    datasets: [
-      {
-        data: [Number(report.totalCost.toFixed(2)), Number(report.totalValue.toFixed(2))],
-        colors: [() => colors.danger, () => colors.success],
-      },
-    ],
-  };
-
   return (
     <ScreenContainer scroll>
       <Header title="Relatórios" subtitle="Distribuição, classes e valor de mercado" />
@@ -270,7 +263,6 @@ export const ReportsScreen = ({ currentUser }) => {
 
           <View style={styles.chartCardCompact}>
             <PieGraphic data={typePieData} />
-            <AllocationLegend items={report.typeAllocations} totalValue={report.totalValue} />
           </View>
 
           <SectionLabel style={styles.nextSection}>Distribuição por ativo</SectionLabel>
@@ -281,18 +273,7 @@ export const ReportsScreen = ({ currentUser }) => {
 
           <SectionLabel style={styles.nextSection}>Custo vs. valor atual</SectionLabel>
           <View style={styles.chartCard}>
-            <BarChart
-              data={barData}
-              width={chartWidth - 24}
-              height={205}
-              chartConfig={chartConfig}
-              fromZero
-              withCustomBarColorFromData
-              flatColor
-              yAxisLabel=""
-              yAxisSuffix=""
-              style={styles.barChart}
-            />
+            <ComparisonBars totalCost={report.totalCost} totalValue={report.totalValue} />
             <View style={styles.reportFooter}>
               <Text style={styles.footerText}>Custo {formatCurrency(report.totalCost)}</Text>
               <Text style={styles.footerText}>Atual {formatCurrency(report.totalValue)}</Text>
@@ -457,9 +438,51 @@ const styles = StyleSheet.create({
   nextSection: {
     marginTop: 24,
   },
-  barChart: {
+  comparisonFrame: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderRadius: 16,
-    marginLeft: -12,
+    borderWidth: 1,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    width: '100%',
+  },
+  barArea: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    height: 230,
+    justifyContent: 'space-around',
+  },
+  barGroup: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    minWidth: 112,
+  },
+  comparisonBar: {
+    borderRadius: 8,
+    width: 58,
+  },
+  costBar: {
+    backgroundColor: colors.danger,
+  },
+  valueBar: {
+    backgroundColor: colors.success,
+  },
+  barValue: {
+    color: colors.foreground,
+    fontFamily: fonts.monoMedium,
+    fontSize: 11,
+    fontVariant: ['tabular-nums'],
+    marginTop: 10,
+  },
+  barLabel: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    marginTop: 7,
+    marginBottom: 14,
+    textTransform: 'uppercase',
   },
   reportFooter: {
     borderColor: colors.border,
