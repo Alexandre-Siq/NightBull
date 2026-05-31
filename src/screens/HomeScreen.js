@@ -13,7 +13,7 @@ import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { formatCurrency, formatPercent } from '../utils/formatters';
 
-export const HomeScreen = () => {
+export const HomeScreen = ({ currentUser, onSignOut }) => {
   const [assets, setAssets] = useState([]);
   const [summary, setSummary] = useState({ totalValue: 0, totalCost: 0, totalReturn: 0 });
   const [loading, setLoading] = useState(true);
@@ -57,7 +57,7 @@ export const HomeScreen = () => {
       setAssets(enrichedAssets);
       setSummary({ totalValue, totalCost, totalReturn });
     } catch (loadError) {
-      setError(loadError.message || 'Nao foi possivel carregar a carteira.');
+      setError(loadError.message || 'Não foi possível carregar a carteira.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -75,10 +75,15 @@ export const HomeScreen = () => {
 
   return (
     <ScreenContainer contentContainerStyle={styles.container}>
-      <Header title="Carteira" subtitle="Acoes, FIIs e ETFs consolidados" />
+      <Header
+        title="Carteira"
+        subtitle={currentUser?.name ? `Olá, ${currentUser.name}` : 'Ações, FIIs e ETFs consolidados'}
+        actionLabel="Sair"
+        onActionPress={onSignOut}
+      />
 
       <LinearGradient colors={['#2D2D2D', '#232323']} style={styles.totalCard}>
-        <Text style={styles.totalLabel}>Patrimonio total</Text>
+        <Text style={styles.totalLabel}>Patrimônio total</Text>
         <Text style={styles.totalValue}>{formatCurrency(summary.totalValue)}</Text>
         <View style={styles.totalMetaRow}>
           <Text style={styles.totalMeta}>Custo {formatCurrency(summary.totalCost)}</Text>
@@ -88,12 +93,12 @@ export const HomeScreen = () => {
         </View>
       </LinearGradient>
 
-      <SectionLabel>Posicoes atuais</SectionLabel>
+      <SectionLabel>Posições atuais</SectionLabel>
 
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator color={colors.foreground} />
-          <Text style={styles.loaderText}>Atualizando cotacoes</Text>
+          <Text style={styles.loaderText}>Atualizando cotações</Text>
         </View>
       ) : error ? (
         <EmptyState title="Falha ao carregar" description={error} />

@@ -14,18 +14,24 @@ const tabIcon = (Icon) =>
     return <Icon color={color} size={20} strokeWidth={focused ? 2.2 : 1.6} />;
   };
 
-export const AppNavigator = () => (
+export const AppNavigator = ({ currentUser, onSignOut }) => (
   <Tab.Navigator
+    detachInactiveScreens={false}
     screenOptions={{
-      animation: 'fade',
+      animation: 'shift',
       headerShown: false,
       sceneStyle: { backgroundColor: colors.background },
       tabBarActiveTintColor: colors.foreground,
       tabBarInactiveTintColor: colors.mutedForeground,
+      tabBarIconStyle: {
+        marginTop: 3,
+      },
       tabBarLabelStyle: {
         fontFamily: fonts.bodyMedium,
         fontSize: 10,
-        marginTop: 2,
+        lineHeight: 13,
+        marginBottom: 2,
+        marginTop: 3,
       },
       tabBarStyle: {
         backgroundColor: colors.card,
@@ -33,23 +39,23 @@ export const AppNavigator = () => (
         borderRadius: 22,
         borderTopWidth: 1,
         bottom: 18,
-        height: 68,
+        height: 78,
         left: 18,
-        paddingBottom: 10,
-        paddingTop: 10,
+        overflow: 'visible',
+        paddingBottom: 14,
+        paddingTop: 9,
         position: 'absolute',
         right: 18,
       },
       tabBarItemStyle: {
         borderRadius: 18,
+        paddingVertical: 3,
       },
     }}
   >
-    <Tab.Screen
-      name="Home"
-      component={HomeScreen}
-      options={{ title: 'Carteira', tabBarIcon: tabIcon(BriefcaseBusiness) }}
-    />
+    <Tab.Screen name="Home" options={{ title: 'Carteira', tabBarIcon: tabIcon(BriefcaseBusiness) }}>
+      {() => <HomeScreen currentUser={currentUser} onSignOut={onSignOut} />}
+    </Tab.Screen>
     <Tab.Screen
       name="Trade"
       component={TradeScreen}
@@ -58,12 +64,12 @@ export const AppNavigator = () => (
     <Tab.Screen
       name="Reports"
       component={ReportsScreen}
-      options={{ title: 'Relatorios', tabBarIcon: tabIcon(ChartNoAxesColumn) }}
+      options={{ title: 'Relatórios', tabBarIcon: tabIcon(ChartNoAxesColumn) }}
     />
     <Tab.Screen
       name="News"
       component={NewsScreen}
-      options={{ title: 'Noticias', tabBarIcon: tabIcon(Newspaper) }}
+      options={{ title: 'Notícias', tabBarIcon: tabIcon(Newspaper) }}
     />
   </Tab.Navigator>
 );

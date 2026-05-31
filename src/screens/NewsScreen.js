@@ -50,7 +50,7 @@ export const NewsScreen = () => {
       setTrackedTickers(tickers);
       setNews(nextNews);
     } catch (loadError) {
-      setError(loadError.message || 'Nao foi possivel carregar noticias.');
+      setError(loadError.message || 'Não foi possível carregar notícias.');
     } finally {
       setLoading(false);
     }
@@ -65,26 +65,26 @@ export const NewsScreen = () => {
   return (
     <ScreenContainer contentContainerStyle={styles.container}>
       <Header
-        title="Noticias"
+        title="Notícias"
         subtitle={trackedTickers.length ? `Filtro: ${trackedTickers.join(', ')}` : 'Resumo financeiro do mercado'}
       />
 
-      <SectionLabel>Atualizacoes do mercado</SectionLabel>
+      <SectionLabel>Atualizações do mercado</SectionLabel>
 
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator color={colors.foreground} />
-          <Text style={styles.loaderText}>Carregando noticias</Text>
+          <Text style={styles.loaderText}>Carregando notícias</Text>
         </View>
       ) : error ? (
-        <EmptyState title="Falha nas noticias" description={error} />
+        <EmptyState title="Falha nas notícias" description={error} />
       ) : (
         <FlatList
           data={news}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <NewsCard item={item} />}
           ListEmptyComponent={
-            <EmptyState title="Nenhuma noticia" description="Nao ha noticias disponiveis para os tickers da carteira." />
+            <EmptyState title="Nenhuma notícia" description="Não há notícias disponíveis para os tickers da carteira." />
           }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}

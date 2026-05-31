@@ -16,6 +16,14 @@ export const initializeDatabase = async () => {
   const database = await getDatabase();
 
   await database.execAsync(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS transactions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       type TEXT NOT NULL CHECK (type IN ('BUY', 'SELL')),
@@ -27,7 +35,66 @@ export const initializeDatabase = async () => {
 
     CREATE INDEX IF NOT EXISTS idx_transactions_ticker ON transactions (ticker);
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions (date);
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
   `);
+};
+
+const normalizeEmail = (email) => email.trim().toLowerCase();
+
+export const createUser = async ({ name, email, password }) => {
+  const database = await getDatabase();
+  const cleanName = name.trim();
+  const cleanEmail = normalizeEmail(email);
+  const cleanPassword = password.trim();
+
+  if (!cleanName || !cleanEmail.includes('@') || cleanPassword.length < 4) {
+    throw new Error('Informe nome, e-mail válido e senha com ao menos 4 caracteres.');
+  }
+
+  const existingUser = await database.getFirstAsync(
+    'SELECT id FROM users WHERE email = ? LIMIT 1',
+    cleanEmail,
+  );
+
+  if (existingUser) {
+    throw new Error('Já existe uma conta cadastrada com este e-mail.');
+  }
+
+  const result = await database.runAsync(
+    'INSERT INTO users (name, email, password, created_at) VALUES (?, ?, ?, ?)',
+    cleanName,
+    cleanEmail,
+    cleanPassword,
+    new Date().toISOString(),
+  );
+
+  return {
+    id: result.lastInsertRowId,
+    name: cleanName,
+    email: cleanEmail,
+  };
+};
+
+export const authenticateUser = async ({ email, password }) => {
+  const database = await getDatabase();
+  const cleanEmail = normalizeEmail(email);
+  const cleanPassword = password.trim();
+
+  if (!cleanEmail || !cleanPassword) {
+    throw new Error('Informe e-mail e senha.');
+  }
+
+  const user = await database.getFirstAsync(
+    'SELECT id, name, email FROM users WHERE email = ? AND password = ? LIMIT 1',
+    cleanEmail,
+    cleanPassword,
+  );
+
+  if (!user) {
+    throw new Error('E-mail ou senha inválidos.');
+  }
+
+  return user;
 };
 
 export const addTransaction = async ({ type, ticker, quantity, price, date }) => {
@@ -38,7 +105,7 @@ export const addTransaction = async ({ type, ticker, quantity, price, date }) =>
   const cleanPrice = Number(price);
 
   if (!cleanTicker || !Number.isInteger(cleanQuantity) || cleanQuantity <= 0 || !Number.isFinite(cleanPrice)) {
-    throw new Error('Dados da transacao invalidos.');
+    throw new Error('Dados da transação inválidos.');
   }
 
   if (cleanType === 'SELL') {

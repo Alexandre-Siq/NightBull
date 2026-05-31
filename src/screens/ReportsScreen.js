@@ -60,7 +60,7 @@ export const ReportsScreen = () => {
 
       setReport({ assets, totalCost, totalValue });
     } catch (loadError) {
-      setError(loadError.message || 'Nao foi possivel gerar os relatorios.');
+      setError(loadError.message || 'Não foi possível gerar os relatórios.');
     } finally {
       setLoading(false);
     }
@@ -92,23 +92,23 @@ export const ReportsScreen = () => {
 
   return (
     <ScreenContainer scroll>
-      <Header title="Relatorios" subtitle="Distribuicao e valor de mercado" />
+      <Header title="Relatórios" subtitle="Distribuição e valor de mercado" />
 
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator color={colors.foreground} />
-          <Text style={styles.loaderText}>Calculando distribuicao</Text>
+          <Text style={styles.loaderText}>Calculando distribuição</Text>
         </View>
       ) : error ? (
-        <EmptyState title="Falha nos relatorios" description={error} />
+        <EmptyState title="Falha nos relatórios" description={error} />
       ) : !report.assets.length ? (
         <EmptyState
-          title="Sem dados para relatorio"
-          description="A carteira precisa ter ao menos uma posicao comprada para montar os graficos."
+          title="Sem dados para relatório"
+          description="A carteira precisa ter ao menos uma posição comprada para montar os gráficos."
         />
       ) : (
         <>
-          <SectionLabel>Distribuicao da carteira</SectionLabel>
+          <SectionLabel>Distribuição da carteira</SectionLabel>
           <View style={styles.chartCard}>
             <PieChart
               data={pieData}
@@ -122,7 +122,7 @@ export const ReportsScreen = () => {
             />
           </View>
 
-          <SectionLabel style={styles.nextSection}>Custo vs valor atual</SectionLabel>
+          <SectionLabel style={styles.nextSection}>Custo vs. valor atual</SectionLabel>
           <View style={styles.chartCard}>
             <BarChart
               data={barData}

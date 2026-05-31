@@ -27,7 +27,7 @@ export const TradeScreen = () => {
     setQuote(null);
 
     if (!cleanTicker) {
-      setError('Informe um ticker valido.');
+      setError('Informe um ticker válido.');
       return;
     }
 
@@ -37,9 +37,9 @@ export const TradeScreen = () => {
       const nextQuote = await fetchQuote(cleanTicker);
       setTicker(nextQuote.ticker);
       setQuote(nextQuote);
-      setMessage(nextQuote.source === 'brapi' ? 'Cotacao validada pela Brapi.' : 'Cotacao mock usada para apresentacao.');
+      setMessage(nextQuote.source === 'brapi' ? 'Cotação validada pela Brapi.' : 'Cotação mock usada para apresentação.');
     } catch (quoteError) {
-      setError(quoteError.message || 'Nao foi possivel validar o ticker.');
+      setError(quoteError.message || 'Não foi possível validar o ticker.');
     } finally {
       setLoadingQuote(false);
     }
@@ -53,7 +53,7 @@ export const TradeScreen = () => {
     setMessage('');
 
     if (!quote || quote.ticker !== cleanTicker) {
-      setError('Busque a cotacao antes de confirmar a operacao.');
+      setError('Busque a cotação antes de confirmar a operação.');
       return;
     }
 
@@ -78,7 +78,7 @@ export const TradeScreen = () => {
       setQuantity('');
       setQuote(null);
     } catch (transactionError) {
-      setError(transactionError.message || 'Nao foi possivel registrar a transacao.');
+      setError(transactionError.message || 'Não foi possível registrar a transação.');
     } finally {
       setSubmitting(false);
     }
@@ -87,7 +87,7 @@ export const TradeScreen = () => {
   return (
     <ScreenContainer scroll>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Header title="Operar" subtitle="Nova transacao com preco de mercado" />
+        <Header title="Operar" subtitle="Nova transação com preço de mercado" />
 
         <View style={styles.formCard}>
           <SectionLabel>Ticker</SectionLabel>
@@ -124,7 +124,7 @@ export const TradeScreen = () => {
             ) : (
               <>
                 <Search color={colors.foreground} size={16} strokeWidth={2} />
-                <Text style={styles.searchButtonText}>Buscar cotacao</Text>
+                <Text style={styles.searchButtonText}>Buscar cotação</Text>
               </>
             )}
           </Pressable>

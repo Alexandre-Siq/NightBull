@@ -9,24 +9,24 @@ const mockPrices = {
   BOVA11: { price: 128.55, changePercent: 0.38, shortName: 'ETF Ibovespa' },
   IVVB11: { price: 315.3, changePercent: 0.58, shortName: 'ETF S&P 500' },
   KNCR11: { price: 103.8, changePercent: -0.12, shortName: 'Kinea Rendimentos' },
-  HGLG11: { price: 161.47, changePercent: 0.09, shortName: 'CSHG Logistica' },
+  HGLG11: { price: 161.47, changePercent: 0.09, shortName: 'CSHG Logística' },
 };
 
 const mockNews = [
   {
     id: 'macro-juros',
-    title: 'Mercado monitora curva de juros antes de nova decisao do Copom',
-    source: 'Valor Economico',
+    title: 'Mercado monitora curva de juros antes de nova decisão do Copom',
+    source: 'Valor Econômico',
     date: '2026-05-31',
-    summary: 'Investidores ajustam posicoes em renda variavel enquanto avaliam inflacao, atividade e comunicados do Banco Central.',
+    summary: 'Investidores ajustam posições em renda variável enquanto avaliam inflação, atividade e comunicados do Banco Central.',
     tickers: ['PETR4', 'VALE3', 'ITUB4', 'BOVA11'],
   },
   {
     id: 'fiis-logistica',
-    title: 'FIIs de tijolo buscam recompor distribuicoes com vacancia controlada',
+    title: 'FIIs de tijolo buscam recompor distribuições com vacância controlada',
     source: 'InfoMoney',
     date: '2026-05-30',
-    summary: 'Segmentos de galpoes logisticos e lajes corporativas mantem foco em contratos indexados e revisoes graduais de aluguel.',
+    summary: 'Segmentos de galpões logísticos e lajes corporativas mantêm foco em contratos indexados e revisões graduais de aluguel.',
     tickers: ['HGLG11', 'KNCR11'],
   },
   {
@@ -34,23 +34,23 @@ const mockNews = [
     title: 'Commodities fecham mistas e afetam empresas exportadoras na B3',
     source: 'Exame Invest',
     date: '2026-05-29',
-    summary: 'Petroleo e minerio seguem sensiveis a dados de demanda global, estoques e sinais da economia chinesa.',
+    summary: 'Petróleo e minério seguem sensíveis a dados de demanda global, estoques e sinais da economia chinesa.',
     tickers: ['PETR4', 'VALE3'],
   },
   {
     id: 'etfs-global',
-    title: 'ETFs internacionais ganham espaco em carteiras diversificadas',
+    title: 'ETFs internacionais ganham espaço em carteiras diversificadas',
     source: 'B3',
     date: '2026-05-28',
-    summary: 'Produtos listados localmente permitem exposicao a indices globais sem remessa direta de recursos ao exterior.',
+    summary: 'Produtos listados localmente permitem exposição a índices globais sem remessa direta de recursos ao exterior.',
     tickers: ['IVVB11', 'BOVA11'],
   },
   {
     id: 'bancos',
-    title: 'Bancos mantem rentabilidade em foco diante de credito seletivo',
+    title: 'Bancos mantêm rentabilidade em foco diante de crédito seletivo',
     source: 'Money Times',
     date: '2026-05-27',
-    summary: 'Analistas observam inadimplencia, margem financeira e disciplina de custos nas principais instituicoes listadas.',
+    summary: 'Analistas observam inadimplência, margem financeira e disciplina de custos nas principais instituições listadas.',
     tickers: ['ITUB4'],
   },
 ];
@@ -88,7 +88,7 @@ export const fetchQuote = async (ticker) => {
   const cleanTicker = normalizeTicker(ticker);
 
   if (!cleanTicker) {
-    throw new Error('Informe um ticker valido.');
+    throw new Error('Informe um ticker válido.');
   }
 
   const controller = new AbortController();
@@ -103,14 +103,14 @@ export const fetchQuote = async (ticker) => {
     });
 
     if (!response.ok) {
-      throw new Error('Nao foi possivel consultar a Brapi.');
+      throw new Error('Não foi possível consultar a Brapi.');
     }
 
     const payload = await response.json();
     const result = payload?.results?.[0];
 
     if (!result?.regularMarketPrice) {
-      throw new Error('Ticker nao encontrado na Brapi.');
+      throw new Error('Ticker não encontrado na Brapi.');
     }
 
     return {
