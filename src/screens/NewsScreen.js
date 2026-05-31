@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { CalendarDays } from 'lucide-react-native';
+import { CalendarDays, ExternalLink } from 'lucide-react-native';
 import { EmptyState } from '../components/EmptyState';
 import { Header } from '../components/Header';
 import { ScreenContainer } from '../components/ScreenContainer';
@@ -12,8 +12,15 @@ import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { formatDate } from '../utils/formatters';
 
-const NewsCard = ({ item }) => (
-  <View style={styles.newsCard}>
+const NewsCard = ({ item }) => {
+  const openSource = async () => {
+    if (item.url) {
+      await Linking.openURL(item.url);
+    }
+  };
+
+  return (
+    <Pressable onPress={openSource} style={({ pressed }) => [styles.newsCard, pressed && styles.pressed]}>
     <View style={styles.newsMetaRow}>
       <Text style={styles.source}>{item.source}</Text>
       <View style={styles.dateRow}>
@@ -29,9 +36,14 @@ const NewsCard = ({ item }) => (
           <Text style={styles.tickerChipText}>{ticker}</Text>
         </View>
       ))}
+      <View style={styles.sourceChip}>
+        <ExternalLink color={colors.mutedForeground} size={11} strokeWidth={1.8} />
+        <Text style={styles.sourceChipText}>Abrir fonte</Text>
+      </View>
     </View>
-  </View>
-);
+  </Pressable>
+  );
+};
 
 export const NewsScreen = ({ currentUser }) => {
   const [news, setNews] = useState([]);
@@ -123,6 +135,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     padding: 16,
   },
+  pressed: {
+    transform: [{ scale: 0.99 }],
+  },
   newsMetaRow: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -177,6 +192,22 @@ const styles = StyleSheet.create({
   tickerChipText: {
     color: colors.foreground,
     fontFamily: fonts.monoMedium,
+    fontSize: 10,
+  },
+  sourceChip: {
+    alignItems: 'center',
+    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  sourceChipText: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyMedium,
     fontSize: 10,
   },
 });

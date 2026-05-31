@@ -4,6 +4,55 @@ const DATABASE_NAME = 'nightbull.db';
 
 let databasePromise;
 
+
+const seedDemoUser = async (database) => {
+  const demoEmail = 'demo@nightbull.com';
+  let demoUser = await database.getFirstAsync('SELECT id FROM users WHERE email = ? LIMIT 1', demoEmail);
+
+  if (!demoUser) {
+    const result = await database.runAsync(
+      'INSERT INTO users (name, email, password, created_at) VALUES (?, ?, ?, ?)',
+      'Usuário Demo',
+      demoEmail,
+      '1234',
+      new Date().toISOString(),
+    );
+
+    demoUser = { id: result.lastInsertRowId };
+  }
+
+  const transactionCount = await database.getFirstAsync(
+    'SELECT COUNT(*) AS count FROM transactions WHERE user_id = ?',
+    demoUser.id,
+  );
+
+  if (transactionCount?.count > 0) {
+    return;
+  }
+
+  const demoTransactions = [
+    ['BUY', 'PETR4', 120, 34.8, '2026-01-12T10:00:00.000Z'],
+    ['BUY', 'VALE3', 80, 59.4, '2026-02-08T10:00:00.000Z'],
+    ['BUY', 'ITUB4', 100, 31.7, '2026-03-05T10:00:00.000Z'],
+    ['BUY', 'BOVA11', 20, 119.35, '2026-03-22T10:00:00.000Z'],
+    ['BUY', 'KNCR11', 35, 101.2, '2026-04-09T10:00:00.000Z'],
+    ['SELL', 'PETR4', 20, 38.1, '2026-05-10T10:00:00.000Z'],
+    ['BUY', 'HGLG11', 15, 158.9, '2026-05-18T10:00:00.000Z'],
+  ];
+
+  for (const [type, ticker, quantity, price, date] of demoTransactions) {
+    await database.runAsync(
+      'INSERT INTO transactions (user_id, type, ticker, quantity, price, date) VALUES (?, ?, ?, ?, ?, ?)',
+      demoUser.id,
+      type,
+      ticker,
+      quantity,
+      price,
+      date,
+    );
+  }
+};
+
 export const getDatabase = async () => {
   if (!databasePromise) {
     databasePromise = SQLite.openDatabaseAsync(DATABASE_NAME);
@@ -47,6 +96,7 @@ export const initializeDatabase = async () => {
   }
 
   await database.execAsync('CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions (user_id)');
+  await seedDemoUser(database);
 };
 
 const requireUserId = (userId) => {

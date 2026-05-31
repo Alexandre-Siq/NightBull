@@ -39,6 +39,23 @@ export const AuthScreen = ({ onAuthenticated }) => {
     setMode(isRegistering ? 'login' : 'register');
   };
 
+  const handleDemoLogin = async () => {
+    resetFeedback();
+    setEmail('demo@nightbull.com');
+    setPassword('1234');
+    setLoading(true);
+
+    try {
+      const user = await authenticateUser({ email: 'demo@nightbull.com', password: '1234' });
+      setMessage('Carteira demo carregada.');
+      onAuthenticated(user);
+    } catch (authError) {
+      setError(authError.message || 'Não foi possível acessar a demonstração.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     resetFeedback();
 
@@ -152,6 +169,17 @@ export const AuthScreen = ({ onAuthenticated }) => {
               </>
             )}
           </Pressable>
+
+          {!isRegistering && (
+            <Pressable
+              onPress={handleDemoLogin}
+              disabled={loading}
+              style={({ pressed }) => [styles.demoButton, pressed && styles.pressed, loading && styles.disabled]}
+            >
+              <Text style={styles.demoButtonText}>Entrar com carteira demo</Text>
+              <Text style={styles.demoCredentials}>demo@nightbull.com | senha 1234</Text>
+            </Pressable>
+          )}
 
           <Pressable onPress={switchMode} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
             <Text style={styles.secondaryButtonText}>
@@ -269,6 +297,28 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     fontFamily: fonts.bodySemiBold,
     fontSize: 14,
+  },
+  demoButton: {
+    alignItems: 'center',
+    backgroundColor: `${colors.success}1F`,
+    borderColor: `${colors.success}59`,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 10,
+    minHeight: 56,
+    justifyContent: 'center',
+    paddingVertical: 9,
+  },
+  demoButtonText: {
+    color: colors.success,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+  },
+  demoCredentials: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.monoMedium,
+    fontSize: 10,
+    marginTop: 4,
   },
   secondaryButton: {
     alignItems: 'center',

@@ -42,6 +42,27 @@ const SummaryCard = ({ label, value, detail, tone = 'neutral' }) => {
   );
 };
 
+
+const AllocationLegend = ({ items, totalValue }) => (
+  <View style={styles.legendGrid}>
+    {items.map((item) => {
+      const value = item.value ?? item.population;
+      const label = item.label ?? item.name;
+      const percent = totalValue > 0 ? (value / totalValue) * 100 : 0;
+
+      return (
+        <View key={item.key ?? label} style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+          <View style={styles.legendCopy}>
+            <Text style={styles.legendLabel}>{label}</Text>
+            <Text style={styles.legendMeta}>{formatPercent(percent)} | {formatCurrency(value)}</Text>
+          </View>
+        </View>
+      );
+    })}
+  </View>
+);
+
 const TypeAllocationCard = ({ item, totalValue }) => {
   const percent = totalValue > 0 ? (item.value / totalValue) * 100 : 0;
 
@@ -131,18 +152,16 @@ export const ReportsScreen = ({ currentUser }) => {
   const result = report.totalValue - report.totalCost;
   const profitability = report.totalCost > 0 ? (result / report.totalCost) * 100 : 0;
   const pieData = report.assets.map((asset) => ({
+    key: asset.ticker,
     name: asset.ticker,
     population: Number(asset.currentValue.toFixed(2)),
     color: asset.color,
-    legendFontColor: colors.mutedForeground,
-    legendFontSize: 11,
   }));
   const typePieData = report.typeAllocations.map((item) => ({
+    key: item.key,
     name: item.label,
     population: Number(item.value.toFixed(2)),
     color: item.color,
-    legendFontColor: colors.mutedForeground,
-    legendFontSize: 11,
   }));
   const barData = {
     labels: ['Custo', 'Atual'],
@@ -196,13 +215,15 @@ export const ReportsScreen = ({ currentUser }) => {
             <PieChart
               data={typePieData}
               width={chartWidth - 24}
-              height={190}
+              height={176}
               chartConfig={chartConfig}
               accessor="population"
               backgroundColor="transparent"
-              paddingLeft="2"
+              paddingLeft="0"
               absolute
+              hasLegend={false}
             />
+            <AllocationLegend items={report.typeAllocations} totalValue={report.totalValue} />
           </View>
 
           <SectionLabel style={styles.nextSection}>Distribuição por ativo</SectionLabel>
@@ -210,13 +231,15 @@ export const ReportsScreen = ({ currentUser }) => {
             <PieChart
               data={pieData}
               width={chartWidth - 24}
-              height={210}
+              height={176}
               chartConfig={chartConfig}
               accessor="population"
               backgroundColor="transparent"
-              paddingLeft="2"
+              paddingLeft="0"
               absolute
+              hasLegend={false}
             />
+            <AllocationLegend items={pieData.slice(0, 6)} totalValue={report.totalValue} />
           </View>
 
           <SectionLabel style={styles.nextSection}>Custo vs. valor atual</SectionLabel>
@@ -224,13 +247,12 @@ export const ReportsScreen = ({ currentUser }) => {
             <BarChart
               data={barData}
               width={chartWidth - 24}
-              height={220}
+              height={205}
               chartConfig={chartConfig}
               fromZero
-              showValuesOnTopOfBars
               withCustomBarColorFromData
               flatColor
-              yAxisLabel="R$"
+              yAxisLabel=""
               yAxisSuffix=""
               style={styles.barChart}
             />
@@ -331,6 +353,42 @@ const styles = StyleSheet.create({
     fontFamily: fonts.monoMedium,
     fontSize: 11,
     marginTop: 6,
+  },
+  legendGrid: {
+    gap: 8,
+    marginTop: 8,
+    width: '100%',
+  },
+  legendItem: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  legendDot: {
+    borderRadius: 5,
+    height: 10,
+    marginRight: 10,
+    width: 10,
+  },
+  legendCopy: {
+    flex: 1,
+  },
+  legendLabel: {
+    color: colors.foreground,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+  },
+  legendMeta: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.monoMedium,
+    fontSize: 11,
+    fontVariant: ['tabular-nums'],
+    marginTop: 4,
   },
   chartCard: {
     alignItems: 'center',
