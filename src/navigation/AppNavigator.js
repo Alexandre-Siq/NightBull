@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { StyleSheet, View } from 'react-native';
 import { BriefcaseBusiness, ChartNoAxesColumn, Newspaper, Repeat2 } from 'lucide-react-native';
 import { HomeScreen } from '../screens/HomeScreen';
 import { TradeScreen } from '../screens/TradeScreen';
@@ -10,7 +11,11 @@ const Tab = createBottomTabNavigator();
 
 const tabIcon = (Icon) =>
   function IconRenderer({ color, focused }) {
-    return <Icon color={color} size={20} strokeWidth={focused ? 2.2 : 1.6} />;
+    return (
+      <View style={styles.iconFrame}>
+        <Icon color={color} size={21} strokeWidth={focused ? 2.2 : 1.6} />
+      </View>
+    );
   };
 
 export const AppNavigator = ({ currentUser, onSignOut }) => (
@@ -24,7 +29,11 @@ export const AppNavigator = ({ currentUser, onSignOut }) => (
       tabBarInactiveTintColor: colors.mutedForeground,
       tabBarShowLabel: false,
       tabBarIconStyle: {
+        alignItems: 'center',
+        height: 52,
+        justifyContent: 'center',
         marginTop: 0,
+        width: 52,
       },
       tabBarStyle: {
         backgroundColor: colors.card,
@@ -32,7 +41,7 @@ export const AppNavigator = ({ currentUser, onSignOut }) => (
         borderRadius: 22,
         borderTopWidth: 1,
         bottom: 18,
-        height: 66,
+        height: 64,
         left: 18,
         overflow: 'visible',
         paddingBottom: 0,
@@ -41,9 +50,12 @@ export const AppNavigator = ({ currentUser, onSignOut }) => (
         right: 18,
       },
       tabBarItemStyle: {
-        borderRadius: 18,
         alignItems: 'center',
+        borderRadius: 18,
+        height: 64,
         justifyContent: 'center',
+        paddingBottom: 0,
+        paddingTop: 0,
       },
     }}
   >
@@ -61,3 +73,13 @@ export const AppNavigator = ({ currentUser, onSignOut }) => (
     </Tab.Screen>
   </Tab.Navigator>
 );
+
+
+const styles = StyleSheet.create({
+  iconFrame: {
+    alignItems: 'center',
+    height: 52,
+    justifyContent: 'center',
+    width: 52,
+  },
+});

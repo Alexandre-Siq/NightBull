@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { BarChart, PieChart } from 'react-native-chart-kit';
+import { BarChart } from 'react-native-chart-kit';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { useFocusEffect } from '@react-navigation/native';
 import { EmptyState } from '../components/EmptyState';
 import { Header } from '../components/Header';
@@ -12,6 +13,62 @@ import { assetPalette, colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { assetTypeMeta, assetTypeOrder, classifyAsset } from '../utils/assetClassifier';
 import { formatCurrency, formatPercent } from '../utils/formatters';
+
+
+const PIE_SIZE = 172;
+
+const polarToCartesian = (center, radius, angleInDegrees) => {
+  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180;
+
+  return {
+    x: center + radius * Math.cos(angleInRadians),
+    y: center + radius * Math.sin(angleInRadians),
+  };
+};
+
+const describeSlice = (startAngle, endAngle, radius, center) => {
+  const start = polarToCartesian(center, radius, endAngle);
+  const end = polarToCartesian(center, radius, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+
+  return [
+    `M ${center} ${center}`,
+    `L ${start.x} ${start.y}`,
+    `A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`,
+    'Z',
+  ].join(' ');
+};
+
+const PieGraphic = ({ data }) => {
+  const total = data.reduce((sum, item) => sum + item.population, 0);
+  const center = PIE_SIZE / 2;
+  const radius = center - 2;
+  let currentAngle = 0;
+
+  if (!data.length || total <= 0) {
+    return <View style={styles.piePlaceholder} />;
+  }
+
+  if (data.length === 1) {
+    return (
+      <Svg width={PIE_SIZE} height={PIE_SIZE} viewBox={`0 0 ${PIE_SIZE} ${PIE_SIZE}`}>
+        <Circle cx={center} cy={center} r={radius} fill={data[0].color} />
+      </Svg>
+    );
+  }
+
+  return (
+    <Svg width={PIE_SIZE} height={PIE_SIZE} viewBox={`0 0 ${PIE_SIZE} ${PIE_SIZE}`}>
+      {data.map((item) => {
+        const angle = (item.population / total) * 360;
+        const path = describeSlice(currentAngle, currentAngle + angle, radius, center);
+        currentAngle += angle;
+
+        return <Path key={item.key ?? item.name} d={path} fill={item.color} />;
+      })}
+    </Svg>
+  );
+};
 
 const chartConfig = {
   backgroundGradientFrom: colors.card,
@@ -212,33 +269,13 @@ export const ReportsScreen = ({ currentUser }) => {
           </View>
 
           <View style={styles.chartCardCompact}>
-            <PieChart
-              data={typePieData}
-              width={chartWidth - 24}
-              height={176}
-              chartConfig={chartConfig}
-              accessor="population"
-              backgroundColor="transparent"
-              paddingLeft="0"
-              absolute
-              hasLegend={false}
-            />
+            <PieGraphic data={typePieData} />
             <AllocationLegend items={report.typeAllocations} totalValue={report.totalValue} />
           </View>
 
           <SectionLabel style={styles.nextSection}>Distribuição por ativo</SectionLabel>
           <View style={styles.chartCard}>
-            <PieChart
-              data={pieData}
-              width={chartWidth - 24}
-              height={176}
-              chartConfig={chartConfig}
-              accessor="population"
-              backgroundColor="transparent"
-              paddingLeft="0"
-              absolute
-              hasLegend={false}
-            />
+            <PieGraphic data={pieData} />
             <AllocationLegend items={pieData.slice(0, 6)} totalValue={report.totalValue} />
           </View>
 
@@ -389,6 +426,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontVariant: ['tabular-nums'],
     marginTop: 4,
+  },
+  piePlaceholder: {
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: PIE_SIZE / 2,
+    height: PIE_SIZE,
+    width: PIE_SIZE,
   },
   chartCard: {
     alignItems: 'center',

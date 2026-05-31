@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { CalendarDays, ExternalLink } from 'lucide-react-native';
@@ -46,8 +46,10 @@ const NewsCard = ({ item }) => {
 };
 
 export const NewsScreen = ({ currentUser }) => {
-  const [news, setNews] = useState([]);
+  const [generalNews, setGeneralNews] = useState([]);
+  const [portfolioNews, setPortfolioNews] = useState([]);
   const [trackedTickers, setTrackedTickers] = useState([]);
+  const [newsScope, setNewsScope] = useState('general');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -57,10 +59,14 @@ export const NewsScreen = ({ currentUser }) => {
 
     try {
       const tickers = await getPortfolioTickers(currentUser.id);
-      const nextNews = await fetchFinancialNews(tickers);
+      const [nextGeneralNews, nextPortfolioNews] = await Promise.all([
+        fetchFinancialNews([]),
+        tickers.length ? fetchFinancialNews(tickers) : Promise.resolve([]),
+      ]);
 
       setTrackedTickers(tickers);
-      setNews(nextNews);
+      setGeneralNews(nextGeneralNews);
+      setPortfolioNews(nextPortfolioNews);
     } catch (loadError) {
       setError(loadError.message || 'Não foi possível carregar notícias.');
     } finally {
@@ -74,14 +80,41 @@ export const NewsScreen = ({ currentUser }) => {
     }, [loadNews]),
   );
 
+  const currentNews = useMemo(
+    () => (newsScope === 'portfolio' ? portfolioNews : generalNews),
+    [generalNews, newsScope, portfolioNews],
+  );
+
   return (
     <ScreenContainer contentContainerStyle={styles.container}>
       <Header
         title="Notícias"
-        subtitle={trackedTickers.length ? `Filtro: ${trackedTickers.join(', ')}` : 'Resumo financeiro do mercado'}
+        subtitle={newsScope === 'portfolio' && trackedTickers.length ? `Meus ativos: ${trackedTickers.join(', ')}` : 'Resumo financeiro do mercado'}
       />
 
       <SectionLabel>Atualizações do mercado</SectionLabel>
+      <View style={styles.filterRow}>
+        <Pressable
+          onPress={() => setNewsScope('general')}
+          style={({ pressed }) => [
+            styles.filterButton,
+            newsScope === 'general' && styles.filterButtonActive,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={[styles.filterText, newsScope === 'general' && styles.filterTextActive]}>Gerais</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setNewsScope('portfolio')}
+          style={({ pressed }) => [
+            styles.filterButton,
+            newsScope === 'portfolio' && styles.filterButtonActive,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={[styles.filterText, newsScope === 'portfolio' && styles.filterTextActive]}>Meus ativos</Text>
+        </Pressable>
+      </View>
 
       {loading ? (
         <View style={styles.loader}>
@@ -92,11 +125,14 @@ export const NewsScreen = ({ currentUser }) => {
         <EmptyState title="Falha nas notícias" description={error} />
       ) : (
         <FlatList
-          data={news}
+          data={currentNews}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <NewsCard item={item} />}
           ListEmptyComponent={
-            <EmptyState title="Nenhuma notícia" description="Não há notícias disponíveis para os tickers da carteira." />
+            <EmptyState
+              title="Nenhuma notícia"
+              description={newsScope === 'portfolio' ? 'Não há notícias disponíveis para os tickers da carteira.' : 'Não há notícias gerais disponíveis.'}
+            />
           }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
@@ -109,6 +145,32 @@ export const NewsScreen = ({ currentUser }) => {
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 100,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+  },
+  filterButton: {
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    flex: 1,
+    paddingVertical: 10,
+  },
+  filterButtonActive: {
+    backgroundColor: `${colors.success}1F`,
+    borderColor: `${colors.success}59`,
+  },
+  filterText: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+  },
+  filterTextActive: {
+    color: colors.success,
   },
   loader: {
     alignItems: 'center',
