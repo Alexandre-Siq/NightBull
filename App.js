@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import {
   Inter_400Regular,
@@ -77,10 +78,12 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer theme={navigationTheme}>
-      <StatusBar style="light" />
-      <AppNavigator />
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer theme={navigationTheme}>
+        <StatusBar style="light" />
+        <AppNavigator />
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 
