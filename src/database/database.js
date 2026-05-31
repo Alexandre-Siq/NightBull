@@ -26,6 +26,7 @@ export const initializeDatabase = async () => {
 
     CREATE TABLE IF NOT EXISTS transactions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
       type TEXT NOT NULL CHECK (type IN ('BUY', 'SELL')),
       ticker TEXT NOT NULL,
       quantity INTEGER NOT NULL CHECK (quantity > 0),
@@ -37,6 +38,25 @@ export const initializeDatabase = async () => {
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions (date);
     CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
   `);
+
+  const columns = await database.getAllAsync('PRAGMA table_info(transactions)');
+  const hasUserColumn = columns.some((column) => column.name === 'user_id');
+
+  if (!hasUserColumn) {
+    await database.execAsync('ALTER TABLE transactions ADD COLUMN user_id INTEGER');
+  }
+
+  await database.execAsync('CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions (user_id)');
+};
+
+const requireUserId = (userId) => {
+  const parsedUserId = Number(userId);
+
+  if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
+    throw new Error('Usuário inválido para carregar a carteira.');
+  }
+
+  return parsedUserId;
 };
 
 const normalizeEmail = (email) => email.trim().toLowerCase();
@@ -97,8 +117,9 @@ export const authenticateUser = async ({ email, password }) => {
   return user;
 };
 
-export const addTransaction = async ({ type, ticker, quantity, price, date }) => {
+export const addTransaction = async ({ userId, type, ticker, quantity, price, date }) => {
   const database = await getDatabase();
+  const cleanUserId = requireUserId(userId);
   const cleanTicker = ticker.trim().toUpperCase();
   const cleanType = type === 'SELL' ? 'SELL' : 'BUY';
   const cleanQuantity = Number.parseInt(quantity, 10);
@@ -109,7 +130,7 @@ export const addTransaction = async ({ type, ticker, quantity, price, date }) =>
   }
 
   if (cleanType === 'SELL') {
-    const position = await getPositionByTicker(cleanTicker);
+    const position = await getPositionByTicker(cleanUserId, cleanTicker);
 
     if (!position || position.quantity < cleanQuantity) {
       throw new Error('Quantidade insuficiente em carteira para vender.');
@@ -117,7 +138,8 @@ export const addTransaction = async ({ type, ticker, quantity, price, date }) =>
   }
 
   return database.runAsync(
-    'INSERT INTO transactions (type, ticker, quantity, price, date) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO transactions (user_id, type, ticker, quantity, price, date) VALUES (?, ?, ?, ?, ?, ?)',
+    cleanUserId,
     cleanType,
     cleanTicker,
     cleanQuantity,
@@ -126,11 +148,13 @@ export const addTransaction = async ({ type, ticker, quantity, price, date }) =>
   );
 };
 
-export const getTransactions = async () => {
+export const getTransactions = async (userId) => {
   const database = await getDatabase();
+  const cleanUserId = requireUserId(userId);
 
   return database.getAllAsync(
-    'SELECT id, type, ticker, quantity, price, date FROM transactions ORDER BY date ASC, id ASC',
+    'SELECT id, user_id, type, ticker, quantity, price, date FROM transactions WHERE user_id = ? ORDER BY date ASC, id ASC',
+    cleanUserId,
   );
 };
 
@@ -185,21 +209,21 @@ export const calculatePositions = (transactions) => {
     .sort((a, b) => a.ticker.localeCompare(b.ticker));
 };
 
-export const getCurrentPositions = async () => {
-  const transactions = await getTransactions();
+export const getCurrentPositions = async (userId) => {
+  const transactions = await getTransactions(userId);
 
   return calculatePositions(transactions);
 };
 
-export const getPositionByTicker = async (ticker) => {
-  const positions = await getCurrentPositions();
+export const getPositionByTicker = async (userId, ticker) => {
+  const positions = await getCurrentPositions(userId);
   const cleanTicker = ticker.trim().toUpperCase();
 
   return positions.find((position) => position.ticker === cleanTicker) || null;
 };
 
-export const getPortfolioTickers = async () => {
-  const positions = await getCurrentPositions();
+export const getPortfolioTickers = async (userId) => {
+  const positions = await getCurrentPositions(userId);
 
   return positions.map((position) => position.ticker);
 };

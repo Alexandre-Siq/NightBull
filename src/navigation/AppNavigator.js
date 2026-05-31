@@ -5,7 +5,6 @@ import { TradeScreen } from '../screens/TradeScreen';
 import { ReportsScreen } from '../screens/ReportsScreen';
 import { NewsScreen } from '../screens/NewsScreen';
 import { colors } from '../theme/colors';
-import { fonts } from '../theme/typography';
 
 const Tab = createBottomTabNavigator();
 
@@ -23,15 +22,9 @@ export const AppNavigator = ({ currentUser, onSignOut }) => (
       sceneStyle: { backgroundColor: colors.background },
       tabBarActiveTintColor: colors.foreground,
       tabBarInactiveTintColor: colors.mutedForeground,
+      tabBarShowLabel: false,
       tabBarIconStyle: {
-        marginTop: 3,
-      },
-      tabBarLabelStyle: {
-        fontFamily: fonts.bodyMedium,
-        fontSize: 10,
-        lineHeight: 13,
-        marginBottom: 2,
-        marginTop: 3,
+        marginTop: 0,
       },
       tabBarStyle: {
         backgroundColor: colors.card,
@@ -39,37 +32,32 @@ export const AppNavigator = ({ currentUser, onSignOut }) => (
         borderRadius: 22,
         borderTopWidth: 1,
         bottom: 18,
-        height: 78,
+        height: 66,
         left: 18,
         overflow: 'visible',
-        paddingBottom: 14,
-        paddingTop: 9,
+        paddingBottom: 0,
+        paddingTop: 0,
         position: 'absolute',
         right: 18,
       },
       tabBarItemStyle: {
         borderRadius: 18,
-        paddingVertical: 3,
+        alignItems: 'center',
+        justifyContent: 'center',
       },
     }}
   >
     <Tab.Screen name="Home" options={{ title: 'Carteira', tabBarIcon: tabIcon(BriefcaseBusiness) }}>
       {() => <HomeScreen currentUser={currentUser} onSignOut={onSignOut} />}
     </Tab.Screen>
-    <Tab.Screen
-      name="Trade"
-      component={TradeScreen}
-      options={{ title: 'Operar', tabBarIcon: tabIcon(Repeat2) }}
-    />
-    <Tab.Screen
-      name="Reports"
-      component={ReportsScreen}
-      options={{ title: 'Relatórios', tabBarIcon: tabIcon(ChartNoAxesColumn) }}
-    />
-    <Tab.Screen
-      name="News"
-      component={NewsScreen}
-      options={{ title: 'Notícias', tabBarIcon: tabIcon(Newspaper) }}
-    />
+    <Tab.Screen name="Trade" options={{ title: 'Operar', tabBarIcon: tabIcon(Repeat2) }}>
+      {() => <TradeScreen currentUser={currentUser} />}
+    </Tab.Screen>
+    <Tab.Screen name="Reports" options={{ title: 'Relatórios', tabBarIcon: tabIcon(ChartNoAxesColumn) }}>
+      {() => <ReportsScreen currentUser={currentUser} />}
+    </Tab.Screen>
+    <Tab.Screen name="News" options={{ title: 'Notícias', tabBarIcon: tabIcon(Newspaper) }}>
+      {() => <NewsScreen currentUser={currentUser} />}
+    </Tab.Screen>
   </Tab.Navigator>
 );

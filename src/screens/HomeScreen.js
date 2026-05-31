@@ -137,8 +137,8 @@ export const HomeScreen = ({ currentUser, onSignOut }) => {
 
     try {
       const [positions, storedTransactions] = await Promise.all([
-        getCurrentPositions(),
-        getTransactions(),
+        getCurrentPositions(currentUser.id),
+        getTransactions(currentUser.id),
       ]);
       const quotes = await fetchQuotes(positions.map((position) => position.ticker));
       const sortedTransactions = [...storedTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -196,7 +196,7 @@ export const HomeScreen = ({ currentUser, onSignOut }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentUser.id]);
 
   useFocusEffect(
     useCallback(() => {

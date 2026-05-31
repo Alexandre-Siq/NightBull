@@ -10,7 +10,7 @@ import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { formatCurrency, normalizeTicker } from '../utils/formatters';
 
-export const TradeScreen = () => {
+export const TradeScreen = ({ currentUser }) => {
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('');
   const [paidPrice, setPaidPrice] = useState('');
@@ -76,6 +76,7 @@ export const TradeScreen = () => {
 
     try {
       await addTransaction({
+        userId: currentUser.id,
         type,
         ticker: cleanTicker,
         quantity: cleanQuantity,

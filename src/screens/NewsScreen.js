@@ -33,7 +33,7 @@ const NewsCard = ({ item }) => (
   </View>
 );
 
-export const NewsScreen = () => {
+export const NewsScreen = ({ currentUser }) => {
   const [news, setNews] = useState([]);
   const [trackedTickers, setTrackedTickers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +44,7 @@ export const NewsScreen = () => {
     setError('');
 
     try {
-      const tickers = await getPortfolioTickers();
+      const tickers = await getPortfolioTickers(currentUser.id);
       const nextNews = await fetchFinancialNews(tickers);
 
       setTrackedTickers(tickers);
@@ -54,7 +54,7 @@ export const NewsScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentUser.id]);
 
   useFocusEffect(
     useCallback(() => {

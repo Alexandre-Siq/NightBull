@@ -10,7 +10,8 @@ import { getCurrentPositions } from '../database/database';
 import { fetchQuotes } from '../services/marketApi';
 import { assetPalette, colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
-import { formatCurrency } from '../utils/formatters';
+import { assetTypeMeta, assetTypeOrder, classifyAsset } from '../utils/assetClassifier';
+import { formatCurrency, formatPercent } from '../utils/formatters';
 
 const chartConfig = {
   backgroundGradientFrom: colors.card,
@@ -26,13 +27,40 @@ const chartConfig = {
     fontFamily: fonts.monoMedium,
     fontSize: 10,
   },
-  barPercentage: 0.62,
+  barPercentage: 0.5,
 };
 
-export const ReportsScreen = () => {
+const SummaryCard = ({ label, value, detail, tone = 'neutral' }) => {
+  const color = tone === 'positive' ? colors.success : tone === 'negative' ? colors.danger : colors.foreground;
+
+  return (
+    <View style={styles.summaryCard}>
+      <Text style={styles.summaryLabel}>{label}</Text>
+      <Text style={[styles.summaryValue, { color }]}>{value}</Text>
+      {!!detail && <Text style={styles.summaryDetail}>{detail}</Text>}
+    </View>
+  );
+};
+
+const TypeAllocationCard = ({ item, totalValue }) => {
+  const percent = totalValue > 0 ? (item.value / totalValue) * 100 : 0;
+
+  return (
+    <View style={styles.typeCard}>
+      <View style={styles.typeHeader}>
+        <View style={[styles.typeDot, { backgroundColor: item.color }]} />
+        <Text style={styles.typeLabel}>{item.label}</Text>
+      </View>
+      <Text style={styles.typeValue}>{formatCurrency(item.value)}</Text>
+      <Text style={styles.typeMeta}>{formatPercent(percent)} | {item.count} ativo{item.count === 1 ? '' : 's'}</Text>
+    </View>
+  );
+};
+
+export const ReportsScreen = ({ currentUser }) => {
   const { width } = useWindowDimensions();
   const chartWidth = Math.max(width - 40, 280);
-  const [report, setReport] = useState({ assets: [], totalCost: 0, totalValue: 0 });
+  const [report, setReport] = useState({ assets: [], totalCost: 0, totalValue: 0, typeAllocations: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -41,30 +69,58 @@ export const ReportsScreen = () => {
     setError('');
 
     try {
-      const positions = await getCurrentPositions();
+      const positions = await getCurrentPositions(currentUser.id);
       const quotes = await fetchQuotes(positions.map((position) => position.ticker));
       const assets = positions.map((position, index) => {
         const currentPrice = quotes[position.ticker]?.price || position.averagePrice;
         const currentValue = currentPrice * position.quantity;
+        const type = classifyAsset(position.ticker);
 
         return {
           ...position,
           currentPrice,
           currentValue,
+          type,
           color: assetPalette[index % assetPalette.length],
         };
       });
 
       const totalCost = assets.reduce((sum, asset) => sum + asset.totalCost, 0);
       const totalValue = assets.reduce((sum, asset) => sum + asset.currentValue, 0);
+      const typeMap = assets.reduce((accumulator, asset) => {
+        const current = accumulator[asset.type.key] || {
+          key: asset.type.key,
+          label: asset.type.label,
+          color: asset.type.color,
+          value: 0,
+          cost: 0,
+          count: 0,
+        };
 
-      setReport({ assets, totalCost, totalValue });
+        current.value += asset.currentValue;
+        current.cost += asset.totalCost;
+        current.count += 1;
+        accumulator[asset.type.key] = current;
+        return accumulator;
+      }, {});
+      const typeAllocations = assetTypeOrder
+        .map((key) => typeMap[key] || {
+          key,
+          label: assetTypeMeta[key].label,
+          color: assetTypeMeta[key].color,
+          value: 0,
+          cost: 0,
+          count: 0,
+        })
+        .filter((item) => item.value > 0);
+
+      setReport({ assets, totalCost, totalValue, typeAllocations });
     } catch (loadError) {
       setError(loadError.message || 'Não foi possível gerar os relatórios.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentUser.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -72,6 +128,8 @@ export const ReportsScreen = () => {
     }, [loadReport]),
   );
 
+  const result = report.totalValue - report.totalCost;
+  const profitability = report.totalCost > 0 ? (result / report.totalCost) * 100 : 0;
   const pieData = report.assets.map((asset) => ({
     name: asset.ticker,
     population: Number(asset.currentValue.toFixed(2)),
@@ -79,7 +137,13 @@ export const ReportsScreen = () => {
     legendFontColor: colors.mutedForeground,
     legendFontSize: 11,
   }));
-
+  const typePieData = report.typeAllocations.map((item) => ({
+    name: item.label,
+    population: Number(item.value.toFixed(2)),
+    color: item.color,
+    legendFontColor: colors.mutedForeground,
+    legendFontSize: 11,
+  }));
   const barData = {
     labels: ['Custo', 'Atual'],
     datasets: [
@@ -92,7 +156,7 @@ export const ReportsScreen = () => {
 
   return (
     <ScreenContainer scroll>
-      <Header title="Relatórios" subtitle="Distribuição e valor de mercado" />
+      <Header title="Relatórios" subtitle="Distribuição, classes e valor de mercado" />
 
       {loading ? (
         <View style={styles.loader}>
@@ -108,7 +172,40 @@ export const ReportsScreen = () => {
         />
       ) : (
         <>
-          <SectionLabel>Distribuição da carteira</SectionLabel>
+          <SectionLabel>Resumo consolidado</SectionLabel>
+          <View style={styles.summaryGrid}>
+            <SummaryCard label="Investido" value={formatCurrency(report.totalCost)} detail="Custo remanescente" />
+            <SummaryCard label="Atual" value={formatCurrency(report.totalValue)} detail="Valor de mercado" />
+            <SummaryCard
+              label="Resultado"
+              value={formatCurrency(result)}
+              detail={formatPercent(profitability)}
+              tone={result >= 0 ? 'positive' : 'negative'}
+            />
+            <SummaryCard label="Ativos" value={String(report.assets.length)} detail="Posições abertas" />
+          </View>
+
+          <SectionLabel style={styles.nextSection}>Classificação por tipo</SectionLabel>
+          <View style={styles.typeGrid}>
+            {report.typeAllocations.map((item) => (
+              <TypeAllocationCard key={item.key} item={item} totalValue={report.totalValue} />
+            ))}
+          </View>
+
+          <View style={styles.chartCardCompact}>
+            <PieChart
+              data={typePieData}
+              width={chartWidth - 24}
+              height={190}
+              chartConfig={chartConfig}
+              accessor="population"
+              backgroundColor="transparent"
+              paddingLeft="2"
+              absolute
+            />
+          </View>
+
+          <SectionLabel style={styles.nextSection}>Distribuição por ativo</SectionLabel>
           <View style={styles.chartCard}>
             <PieChart
               data={pieData}
@@ -117,7 +214,7 @@ export const ReportsScreen = () => {
               chartConfig={chartConfig}
               accessor="population"
               backgroundColor="transparent"
-              paddingLeft="0"
+              paddingLeft="2"
               absolute
             />
           </View>
@@ -127,7 +224,7 @@ export const ReportsScreen = () => {
             <BarChart
               data={barData}
               width={chartWidth - 24}
-              height={235}
+              height={220}
               chartConfig={chartConfig}
               fromZero
               showValuesOnTopOfBars
@@ -163,6 +260,78 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 12,
   },
+  summaryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  summaryCard: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 16,
+    borderWidth: 1,
+    minHeight: 94,
+    padding: 14,
+    width: '48%',
+  },
+  summaryLabel: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    textTransform: 'uppercase',
+  },
+  summaryValue: {
+    color: colors.foreground,
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 18,
+    fontVariant: ['tabular-nums'],
+    marginTop: 10,
+  },
+  summaryDetail: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 12,
+    marginTop: 6,
+  },
+  typeGrid: {
+    gap: 8,
+  },
+  typeCard: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+  },
+  typeHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  typeDot: {
+    borderRadius: 5,
+    height: 10,
+    width: 10,
+  },
+  typeLabel: {
+    color: colors.foreground,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+  },
+  typeValue: {
+    color: colors.foreground,
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 19,
+    fontVariant: ['tabular-nums'],
+    marginTop: 10,
+  },
+  typeMeta: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.monoMedium,
+    fontSize: 11,
+    marginTop: 6,
+  },
   chartCard: {
     alignItems: 'center',
     backgroundColor: colors.card,
@@ -172,6 +341,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     paddingHorizontal: 12,
     paddingVertical: 16,
+  },
+  chartCardCompact: {
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    marginTop: 10,
+    overflow: 'hidden',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   nextSection: {
     marginTop: 24,
