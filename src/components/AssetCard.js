@@ -1,16 +1,16 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { formatCurrency, formatPercent, initialsFromTicker } from '../utils/formatters';
 
-export const AssetCard = ({ asset }) => {
+export const AssetCard = ({ asset, onPress }) => {
   const isPositive = asset.returnPercent >= 0;
   const accent = isPositive ? colors.success : colors.danger;
   const VariationIcon = isPositive ? ArrowUpRight : ArrowDownRight;
 
   return (
-    <View style={styles.card}>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       <View style={styles.left}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{initialsFromTicker(asset.ticker)}</Text>
@@ -30,7 +30,7 @@ export const AssetCard = ({ asset }) => {
           <Text style={[styles.badgeText, { color: accent }]}>{formatPercent(asset.returnPercent)}</Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 };
 
@@ -83,6 +83,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyRegular,
     fontSize: 12,
     marginTop: 5,
+  },
+  pressed: {
+    transform: [{ scale: 0.99 }],
   },
   right: {
     alignItems: 'flex-end',

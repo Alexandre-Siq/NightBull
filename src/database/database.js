@@ -144,18 +144,39 @@ export const calculatePositions = (transactions) => {
       quantity: 0,
       totalCost: 0,
       averagePrice: 0,
+      averageBuyPrice: 0,
+      buyQuantity: 0,
+      sellQuantity: 0,
+      buyTotal: 0,
+      sellTotal: 0,
+      realizedResult: 0,
+      transactionCount: 0,
+      lastTradeDate: transaction.date,
     };
 
     if (transaction.type === 'BUY') {
-      current.totalCost += transaction.quantity * transaction.price;
+      const operationValue = transaction.quantity * transaction.price;
+
+      current.buyQuantity += transaction.quantity;
+      current.buyTotal += operationValue;
+      current.totalCost += operationValue;
       current.quantity += transaction.quantity;
     } else {
       const quantityToSell = Math.min(transaction.quantity, current.quantity);
-      current.totalCost -= quantityToSell * current.averagePrice;
+      const operationValue = transaction.quantity * transaction.price;
+      const costBasis = quantityToSell * current.averagePrice;
+
+      current.sellQuantity += transaction.quantity;
+      current.sellTotal += operationValue;
+      current.realizedResult += operationValue - costBasis;
+      current.totalCost -= costBasis;
       current.quantity -= quantityToSell;
     }
 
     current.averagePrice = current.quantity > 0 ? current.totalCost / current.quantity : 0;
+    current.averageBuyPrice = current.buyQuantity > 0 ? current.buyTotal / current.buyQuantity : 0;
+    current.transactionCount += 1;
+    current.lastTradeDate = transaction.date;
     positionMap.set(ticker, current);
   });
 

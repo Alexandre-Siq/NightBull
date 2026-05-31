@@ -13,11 +13,14 @@ import { formatCurrency, normalizeTicker } from '../utils/formatters';
 export const TradeScreen = () => {
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('');
+  const [paidPrice, setPaidPrice] = useState('');
   const [quote, setQuote] = useState(null);
   const [loadingQuote, setLoadingQuote] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  const parsePriceInput = (value) => Number.parseFloat(value.replace(',', '.'));
 
   const handleSearch = async () => {
     const cleanTicker = normalizeTicker(ticker);
@@ -37,6 +40,7 @@ export const TradeScreen = () => {
       const nextQuote = await fetchQuote(cleanTicker);
       setTicker(nextQuote.ticker);
       setQuote(nextQuote);
+      setPaidPrice(String(nextQuote.price.toFixed(2)).replace('.', ','));
       setMessage(nextQuote.source === 'brapi' ? 'Cotação validada pela Brapi.' : 'Cotação mock usada para apresentação.');
     } catch (quoteError) {
       setError(quoteError.message || 'Não foi possível validar o ticker.');
@@ -48,6 +52,7 @@ export const TradeScreen = () => {
   const handleTransaction = async (type) => {
     const cleanTicker = normalizeTicker(ticker);
     const cleanQuantity = Number.parseInt(quantity, 10);
+    const cleanPaidPrice = parsePriceInput(paidPrice);
 
     setError('');
     setMessage('');
@@ -62,6 +67,11 @@ export const TradeScreen = () => {
       return;
     }
 
+    if (!Number.isFinite(cleanPaidPrice) || cleanPaidPrice <= 0) {
+      setError('Informe o preço pago por ativo.');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -69,13 +79,14 @@ export const TradeScreen = () => {
         type,
         ticker: cleanTicker,
         quantity: cleanQuantity,
-        price: quote.price,
+        price: cleanPaidPrice,
         date: new Date().toISOString(),
       });
 
       setMessage(type === 'BUY' ? 'Compra registrada.' : 'Venda registrada.');
       setTicker('');
       setQuantity('');
+      setPaidPrice('');
       setQuote(null);
     } catch (transactionError) {
       setError(transactionError.message || 'Não foi possível registrar a transação.');
@@ -96,6 +107,7 @@ export const TradeScreen = () => {
             onChangeText={(value) => {
               setTicker(normalizeTicker(value));
               setQuote(null);
+              setPaidPrice('');
             }}
             placeholder="PETR4"
             placeholderTextColor={colors.mutedForeground}
@@ -113,6 +125,19 @@ export const TradeScreen = () => {
             keyboardType="number-pad"
             style={styles.input}
           />
+
+          <SectionLabel style={styles.fieldLabel}>Preço pago por ativo</SectionLabel>
+          <TextInput
+            value={paidPrice}
+            onChangeText={setPaidPrice}
+            placeholder="0,00"
+            placeholderTextColor={colors.mutedForeground}
+            keyboardType="decimal-pad"
+            style={styles.input}
+          />
+          <Text style={styles.helperText}>
+            A cotação atual preenche este campo como sugestão, mas você pode informar o valor realmente pago.
+          </Text>
 
           <Pressable
             onPress={handleSearch}
@@ -137,6 +162,7 @@ export const TradeScreen = () => {
               </View>
               <View style={styles.quoteRight}>
                 <Text style={styles.quotePrice}>{formatCurrency(quote.price)}</Text>
+                <Text style={styles.quoteCaption}>Cotação atual</Text>
                 <Text style={styles.quoteSource}>{quote.source === 'brapi' ? 'Brapi' : 'Mock'}</Text>
               </View>
             </View>
@@ -202,6 +228,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 13,
   },
+  helperText: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 8,
+  },
   searchButton: {
     alignItems: 'center',
     backgroundColor: colors.surfaceElevated,
@@ -250,6 +283,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.displaySemiBold,
     fontSize: 18,
     fontVariant: ['tabular-nums'],
+  },
+  quoteCaption: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 10,
+    marginTop: 4,
   },
   quoteSource: {
     color: colors.mutedForeground,
