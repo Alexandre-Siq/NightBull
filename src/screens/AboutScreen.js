@@ -6,49 +6,25 @@ import { SectionLabel } from '../components/SectionLabel';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
-const decisions = [
-  {
-    icon: Smartphone,
-    title: 'Aplicativo em React Native com Expo',
-    description: 'Escolhi Expo para acelerar a construção e conseguir apresentar o mesmo projeto em Android e Web, sem depender de configuração nativa complexa.',
-  },
-  {
-    icon: Route,
-    title: 'Navegação por abas',
-    description: 'Separei o app em áreas objetivas: carteira, operação, relatórios, notícias e sobre. A ideia foi deixar o fluxo claro para quem estiver avaliando.',
-  },
-  {
-    icon: Database,
-    title: 'Persistência local com SQLite',
-    description: 'Usei SQLite para gravar usuários e transações no próprio dispositivo. Assim, as compras e vendas continuam salvas mesmo após fechar o app.',
-  },
-  {
-    icon: LineChart,
-    title: 'Cotações e relatórios',
-    description: 'A cotação é buscada pela Brapi quando possível. Os relatórios foram montados com gráficos e cálculos locais para evitar dependência excessiva de serviços externos.',
-  },
-  {
-    icon: Newspaper,
-    title: 'Notícias financeiras',
-    description: 'Mantive notícias mockadas e clicáveis para garantir estabilidade na apresentação, com filtro entre notícias gerais e notícias relacionadas aos meus ativos.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Validações de uso',
-    description: 'O app valida tickers conhecidos, exige quantidade válida, permite informar o preço realmente pago e separa a carteira de cada usuário cadastrado.',
-  },
+const stackItems = [
+  { icon: Smartphone, title: 'React Native + Expo', description: 'Aplicativo mobile multiplataforma com execução em Android e Web.' },
+  { icon: Route, title: 'React Navigation', description: 'Navegação por abas com fluxo simples para apresentação.' },
+  { icon: Database, title: 'expo-sqlite', description: 'Persistência local de usuários, compras e vendas.' },
+  { icon: LineChart, title: 'Brapi + gráficos', description: 'Cotação de ativos, relatórios SVG e comparação de carteira.' },
+  { icon: Newspaper, title: 'Notícias filtradas', description: 'Cards mockados e clicáveis, com filtro geral ou por ativos da carteira.' },
+  { icon: ShieldCheck, title: 'Validação local', description: 'Tickers aceitos por Brapi ou lista local conhecida da B3.' },
 ];
 
 const presentationSteps = [
-  'Criar uma conta ou acessar com um usuário já cadastrado.',
-  'Selecionar um ativo reconhecido pela B3 na tela Operar.',
-  'Registrar uma compra ou venda com o preço pago pelo usuário.',
-  'Conferir o patrimônio, histórico e detalhe do ativo na Carteira.',
-  'Analisar a distribuição por ativo e por tipo em Relatórios.',
-  'Abrir Notícias e comparar o filtro geral com o filtro Meus ativos.',
+  'Entrar com a carteira demo.',
+  'Registrar compra ou venda em Operar.',
+  'Conferir patrimônio e histórico na Carteira.',
+  'Abrir detalhes de um ativo tocando no card.',
+  'Analisar distribuição em Relatórios.',
+  'Filtrar Notícias por Meus ativos.',
 ];
 
-const DecisionCard = ({ item }) => {
+const InfoCard = ({ item }) => {
   const Icon = item.icon;
 
   return (
@@ -66,39 +42,21 @@ const DecisionCard = ({ item }) => {
 
 export const AboutScreen = () => (
   <ScreenContainer scroll>
-    <Header title="Sobre" subtitle="Como construí e organizei este projeto" />
+    <Header title="Sobre" subtitle="Resumo técnico para apresentação acadêmica" />
 
     <View style={styles.heroCard}>
       <Text style={styles.heroEyebrow}>NightBull</Text>
-      <Text style={styles.heroTitle}>Minha proposta de carteira de investimentos</Text>
+      <Text style={styles.heroTitle}>Carteira de investimentos local</Text>
       <Text style={styles.heroText}>
-        Neste projeto, eu desenvolvi um aplicativo de carteira de investimentos com foco em uma apresentação acadêmica funcional.
-        Minha intenção foi simular um fluxo real de uso: cadastrar usuário, registrar compras e vendas, acompanhar patrimônio,
-        visualizar relatórios e consultar notícias do mercado financeiro.
-      </Text>
-      <Text style={styles.heroText}>
-        Priorizei uma interface escura, minimalista e objetiva, com dados bem destacados e sem elementos visuais que tirassem o foco
-        da análise da carteira.
+        Projeto acadêmico em dark theme para registrar compras e vendas, calcular patrimônio,
+        acompanhar preço médio, visualizar relatórios e consultar notícias financeiras.
       </Text>
     </View>
 
-    <SectionLabel style={styles.nextSection}>Decisões técnicas</SectionLabel>
-    {decisions.map((item) => <DecisionCard key={item.title} item={item} />)}
+    <SectionLabel style={styles.nextSection}>Tecnologias e módulos</SectionLabel>
+    {stackItems.map((item) => <InfoCard key={item.title} item={item} />)}
 
-    <SectionLabel style={styles.nextSection}>O que o app demonstra</SectionLabel>
-    <View style={styles.textCard}>
-      <Text style={styles.paragraph}>
-        A aplicação demonstra integração entre interface mobile, banco local, consumo de API, validações de formulário,
-        cálculos financeiros e visualização de dados. O ponto principal é mostrar que a carteira não é apenas uma lista de ativos:
-        ela calcula preço médio, custo total, valor atual, rentabilidade, histórico e distribuição por classe.
-      </Text>
-      <Text style={styles.paragraph}>
-        Também procurei deixar o projeto seguro para apresentação. Por isso, algumas partes usam dados mockados ou fallback local,
-        evitando que uma falha de API prejudique a demonstração.
-      </Text>
-    </View>
-
-    <SectionLabel style={styles.nextSection}>Roteiro que eu usaria na apresentação</SectionLabel>
+    <SectionLabel style={styles.nextSection}>Roteiro de apresentação</SectionLabel>
     <View style={styles.stepsCard}>
       {presentationSteps.map((step, index) => (
         <View key={step} style={styles.stepRow}>
@@ -181,20 +139,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 5,
   },
-  textCard: {
-    backgroundColor: colors.card,
-    borderColor: colors.border,
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 16,
-  },
-  paragraph: {
-    color: colors.mutedForeground,
-    fontFamily: fonts.bodyRegular,
-    fontSize: 13,
-    lineHeight: 21,
-    marginBottom: 10,
-  },
   stepsCard: {
     backgroundColor: colors.card,
     borderColor: colors.border,
@@ -226,6 +170,5 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
-    lineHeight: 19,
   },
 });
