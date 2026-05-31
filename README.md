@@ -18,13 +18,6 @@ Aplicativo mobile acadêmico de carteira de investimentos em React Native com Ex
 - Relatórios com gráfico de pizza e barras em dark theme.
 - Notícias financeiras mockadas e filtradas pelos tickers da carteira.
 
-## Usuário demo
-
-O app cria automaticamente uma carteira de demonstração local:
-
-- E-mail: `demo@nightbull.com`
-- Senha: `1234`
-
 ## Scripts
 
 ```bash
