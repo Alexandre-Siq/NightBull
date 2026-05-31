@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
+import { ArrowDownLeft, ArrowUpRight, CheckCircle2 } from 'lucide-react-native';
 import { Header } from '../components/Header';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SectionLabel } from '../components/SectionLabel';
@@ -10,11 +10,51 @@ import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { formatCurrency, normalizeTicker } from '../utils/formatters';
 
+
+const ConfirmationCard = ({ transaction }) => {
+  if (!transaction) {
+    return null;
+  }
+
+  const isBuy = transaction.type === 'BUY';
+  const accent = isBuy ? colors.success : colors.danger;
+
+  return (
+    <View style={[styles.confirmationCard, { borderColor: `${accent}59`, backgroundColor: `${accent}1F` }]}>
+      <View style={styles.confirmationHeader}>
+        <CheckCircle2 color={accent} size={19} strokeWidth={2} />
+        <Text style={[styles.confirmationTitle, { color: accent }]}>
+          {isBuy ? 'Compra registrada' : 'Venda registrada'}
+        </Text>
+      </View>
+      <View style={styles.confirmationGrid}>
+        <View style={styles.confirmationItem}>
+          <Text style={styles.confirmationLabel}>Ticker</Text>
+          <Text style={styles.confirmationValue}>{transaction.ticker}</Text>
+        </View>
+        <View style={styles.confirmationItem}>
+          <Text style={styles.confirmationLabel}>Quantidade</Text>
+          <Text style={styles.confirmationValue}>{transaction.quantity}</Text>
+        </View>
+        <View style={styles.confirmationItem}>
+          <Text style={styles.confirmationLabel}>Preço pago</Text>
+          <Text style={styles.confirmationValue}>{formatCurrency(transaction.price)}</Text>
+        </View>
+        <View style={styles.confirmationItem}>
+          <Text style={styles.confirmationLabel}>Total</Text>
+          <Text style={styles.confirmationValue}>{formatCurrency(transaction.total)}</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
 export const TradeScreen = ({ currentUser }) => {
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('');
   const [paidPrice, setPaidPrice] = useState('');
   const [quote, setQuote] = useState(null);
+  const [lastTransaction, setLastTransaction] = useState(null);
   const [loadingQuote, setLoadingQuote] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -43,12 +83,14 @@ export const TradeScreen = ({ currentUser }) => {
     setPaidPrice('');
     setMessage('');
     setError('');
+    setLastTransaction(null);
   };
 
   const handleSelectTicker = async (asset) => {
     setTicker(asset.ticker);
     setError('');
     setMessage('');
+    setLastTransaction(null);
     setQuote(null);
     setPaidPrice('');
     setLoadingQuote(true);
@@ -72,6 +114,7 @@ export const TradeScreen = ({ currentUser }) => {
 
     setError('');
     setMessage('');
+    setLastTransaction(null);
 
     if (!selectedQuoteReady) {
       setError('Selecione um ativo da lista antes de confirmar a operação.');
@@ -100,7 +143,16 @@ export const TradeScreen = ({ currentUser }) => {
         date: new Date().toISOString(),
       });
 
-      setMessage(type === 'BUY' ? 'Compra registrada.' : 'Venda registrada.');
+      setLastTransaction({
+        type,
+        ticker: cleanTicker,
+        quantity: cleanQuantity,
+        price: cleanPaidPrice,
+        total: cleanQuantity * cleanPaidPrice,
+        date: new Date().toISOString(),
+      });
+      setMessage('');
+      setError('');
       setTicker('');
       setQuantity('');
       setPaidPrice('');
@@ -199,6 +251,7 @@ export const TradeScreen = ({ currentUser }) => {
 
           {!!error && <Text style={styles.errorText}>{error}</Text>}
           {!!message && <Text style={styles.messageText}>{message}</Text>}
+          <ConfirmationCard transaction={lastTransaction} />
 
           <View style={styles.actionGrid}>
             <Pressable
@@ -370,8 +423,52 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textTransform: 'uppercase',
   },
-  errorText: {
-    color: colors.danger,
+
+  confirmationCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    marginTop: 16,
+    padding: 14,
+  },
+  confirmationHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  confirmationTitle: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+  },
+  confirmationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 14,
+  },
+  confirmationItem: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    width: '48%',
+  },
+  confirmationLabel: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 9,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  confirmationValue: {
+    color: colors.foreground,
+    fontFamily: fonts.monoMedium,
+    fontSize: 12,
+    fontVariant: ['tabular-nums'],
+    marginTop: 6,
+  },
+  errorText: {    color: colors.danger,
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
     lineHeight: 19,

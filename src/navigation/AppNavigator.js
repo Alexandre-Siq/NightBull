@@ -1,10 +1,11 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet, View } from 'react-native';
-import { BriefcaseBusiness, ChartNoAxesColumn, Newspaper, Repeat2 } from 'lucide-react-native';
+import { BriefcaseBusiness, ChartNoAxesColumn, Info, Newspaper, Repeat2 } from 'lucide-react-native';
 import { HomeScreen } from '../screens/HomeScreen';
 import { TradeScreen } from '../screens/TradeScreen';
 import { ReportsScreen } from '../screens/ReportsScreen';
 import { NewsScreen } from '../screens/NewsScreen';
+import { AboutScreen } from '../screens/AboutScreen';
 import { colors } from '../theme/colors';
 
 const Tab = createBottomTabNavigator();
@@ -71,6 +72,7 @@ export const AppNavigator = ({ currentUser, onSignOut }) => (
     <Tab.Screen name="News" options={{ title: 'Notícias', tabBarIcon: tabIcon(Newspaper) }}>
       {() => <NewsScreen currentUser={currentUser} />}
     </Tab.Screen>
+    <Tab.Screen name="About" component={AboutScreen} options={{ title: 'Sobre', tabBarIcon: tabIcon(Info) }} />
   </Tab.Navigator>
 );
 
