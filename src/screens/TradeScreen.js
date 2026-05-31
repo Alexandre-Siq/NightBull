@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { ArrowDownLeft, ArrowUpRight, Search } from 'lucide-react-native';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
 import { Header } from '../components/Header';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SectionLabel } from '../components/SectionLabel';
 import { addTransaction } from '../database/database';
-import { fetchQuote } from '../services/marketApi';
+import { b3AssetOptions, fetchQuote } from '../services/marketApi';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { formatCurrency, normalizeTicker } from '../utils/formatters';
@@ -21,44 +21,60 @@ export const TradeScreen = ({ currentUser }) => {
   const [error, setError] = useState('');
 
   const parsePriceInput = (value) => Number.parseFloat(value.replace(',', '.'));
+  const cleanTicker = normalizeTicker(ticker);
+  const selectedQuoteReady = quote?.ticker === cleanTicker;
+  const tickerSuggestions = useMemo(() => {
+    if (!cleanTicker) {
+      return [];
+    }
 
-  const handleSearch = async () => {
-    const cleanTicker = normalizeTicker(ticker);
+    return b3AssetOptions
+      .filter((asset) => {
+        const searchableName = asset.name.toUpperCase();
 
+        return asset.ticker.includes(cleanTicker) || searchableName.includes(cleanTicker);
+      })
+      .slice(0, 12);
+  }, [cleanTicker]);
+
+  const handleTickerChange = (value) => {
+    setTicker(normalizeTicker(value));
+    setQuote(null);
+    setPaidPrice('');
+    setMessage('');
+    setError('');
+  };
+
+  const handleSelectTicker = async (asset) => {
+    setTicker(asset.ticker);
     setError('');
     setMessage('');
     setQuote(null);
-
-    if (!cleanTicker) {
-      setError('Informe um ticker válido.');
-      return;
-    }
-
+    setPaidPrice('');
     setLoadingQuote(true);
 
     try {
-      const nextQuote = await fetchQuote(cleanTicker);
+      const nextQuote = await fetchQuote(asset.ticker);
       setTicker(nextQuote.ticker);
       setQuote(nextQuote);
       setPaidPrice(String(nextQuote.price.toFixed(2)).replace('.', ','));
-      setMessage(nextQuote.source === 'brapi' ? 'Cotação validada pela Brapi.' : 'Cotação mock usada para apresentação.');
+      setMessage(nextQuote.source === 'brapi' ? 'Cotação carregada pela Brapi.' : 'Cotação mock usada para apresentação.');
     } catch (quoteError) {
-      setError(quoteError.message || 'Não foi possível validar o ticker.');
+      setError(quoteError.message || 'Não foi possível carregar a cotação.');
     } finally {
       setLoadingQuote(false);
     }
   };
 
   const handleTransaction = async (type) => {
-    const cleanTicker = normalizeTicker(ticker);
     const cleanQuantity = Number.parseInt(quantity, 10);
     const cleanPaidPrice = parsePriceInput(paidPrice);
 
     setError('');
     setMessage('');
 
-    if (!quote || quote.ticker !== cleanTicker) {
-      setError('Busque a cotação antes de confirmar a operação.');
+    if (!selectedQuoteReady) {
+      setError('Selecione um ativo da lista antes de confirmar a operação.');
       return;
     }
 
@@ -105,17 +121,37 @@ export const TradeScreen = ({ currentUser }) => {
           <SectionLabel>Ticker</SectionLabel>
           <TextInput
             value={ticker}
-            onChangeText={(value) => {
-              setTicker(normalizeTicker(value));
-              setQuote(null);
-              setPaidPrice('');
-            }}
+            onChangeText={handleTickerChange}
             placeholder="PETR4"
             placeholderTextColor={colors.mutedForeground}
             autoCapitalize="characters"
             autoCorrect={false}
             style={styles.input}
           />
+
+          {!!cleanTicker && !selectedQuoteReady && !loadingQuote && (
+            <View style={styles.suggestionBox}>
+              {tickerSuggestions.length ? (
+                <ScrollView nestedScrollEnabled style={styles.suggestionScroll} keyboardShouldPersistTaps="handled">
+                  {tickerSuggestions.map((asset) => (
+                    <Pressable
+                      key={asset.ticker}
+                      onPress={() => handleSelectTicker(asset)}
+                      style={({ pressed }) => [styles.suggestionItem, pressed && styles.pressed]}
+                    >
+                      <Text style={styles.suggestionTicker}>{asset.ticker}</Text>
+                      <Text style={styles.suggestionName}>{asset.name}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              ) : (
+                <View style={styles.noSuggestionItem}>
+                  <Text style={styles.noSuggestionTitle}>Nenhum ativo compatível</Text>
+                  <Text style={styles.noSuggestionText}>Digite um ticker reconhecido da B3, como PETR4 ou VALE3.</Text>
+                </View>
+              )}
+            </View>
+          )}
 
           <SectionLabel style={styles.fieldLabel}>Quantidade</SectionLabel>
           <TextInput
@@ -140,20 +176,12 @@ export const TradeScreen = ({ currentUser }) => {
             A cotação atual preenche este campo como sugestão, mas você pode informar o valor realmente pago.
           </Text>
 
-          <Pressable
-            onPress={handleSearch}
-            disabled={loadingQuote || submitting}
-            style={({ pressed }) => [styles.searchButton, pressed && styles.pressed]}
-          >
-            {loadingQuote ? (
+          {loadingQuote && (
+            <View style={styles.loadingQuoteRow}>
               <ActivityIndicator color={colors.foreground} />
-            ) : (
-              <>
-                <Search color={colors.foreground} size={16} strokeWidth={2} />
-                <Text style={styles.searchButtonText}>Buscar cotação</Text>
-              </>
-            )}
-          </Pressable>
+              <Text style={styles.loadingQuoteText}>Carregando cotação</Text>
+            </View>
+          )}
 
           {quote && (
             <View style={styles.quoteCard}>
@@ -236,7 +264,51 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 8,
   },
-  searchButton: {
+  suggestionBox: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  suggestionScroll: {
+    maxHeight: 190,
+  },
+  suggestionItem: {
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  suggestionTicker: {
+    color: colors.foreground,
+    fontFamily: fonts.monoMedium,
+    fontSize: 14,
+  },
+  suggestionName: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  noSuggestionItem: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  noSuggestionTitle: {
+    color: colors.foreground,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+  },
+  noSuggestionText: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 5,
+  },
+  loadingQuoteRow: {
     alignItems: 'center',
     backgroundColor: colors.surfaceElevated,
     borderColor: colors.border,
@@ -245,13 +317,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     justifyContent: 'center',
-    marginTop: 18,
-    minHeight: 48,
+    marginTop: 16,
+    minHeight: 46,
   },
-  searchButtonText: {
+  loadingQuoteText: {
     color: colors.foreground,
     fontFamily: fonts.bodySemiBold,
-    fontSize: 14,
+    fontSize: 13,
   },
   quoteCard: {
     alignItems: 'center',

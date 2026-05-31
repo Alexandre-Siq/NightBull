@@ -25,7 +25,14 @@ const mockPrices = {
   XPLG11: { price: 103.12, changePercent: -0.07, shortName: 'XP Log FII' },
 };
 
-export const knownB3Tickers = Object.keys(mockPrices);
+export const b3AssetOptions = Object.entries(mockPrices)
+  .map(([ticker, data]) => ({
+    ticker,
+    name: data.shortName,
+  }))
+  .sort((a, b) => a.ticker.localeCompare(b.ticker));
+
+export const knownB3Tickers = b3AssetOptions.map((asset) => asset.ticker);
 
 const mockNews = [
   {
