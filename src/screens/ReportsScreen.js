@@ -274,10 +274,6 @@ export const ReportsScreen = ({ currentUser }) => {
           <SectionLabel style={styles.nextSection}>Custo vs. valor atual</SectionLabel>
           <View style={styles.chartCard}>
             <ComparisonBars totalCost={report.totalCost} totalValue={report.totalValue} />
-            <View style={styles.reportFooter}>
-              <Text style={styles.footerText}>Custo {formatCurrency(report.totalCost)}</Text>
-              <Text style={styles.footerText}>Atual {formatCurrency(report.totalValue)}</Text>
-            </View>
           </View>
         </>
       )}
@@ -483,22 +479,5 @@ const styles = StyleSheet.create({
     marginTop: 7,
     marginBottom: 14,
     textTransform: 'uppercase',
-  },
-  reportFooter: {
-    borderColor: colors.border,
-    borderRadius: 14,
-    borderWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    width: '100%',
-  },
-  footerText: {
-    color: colors.mutedForeground,
-    fontFamily: fonts.monoMedium,
-    fontSize: 11,
-    fontVariant: ['tabular-nums'],
   },
 });
