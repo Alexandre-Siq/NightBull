@@ -5,7 +5,7 @@ const DATABASE_NAME = 'nightbull.db';
 let databasePromise;
 
 
-const seedDemoUser = async (database) => {
+const seedDemoUser = async (database) => { //define o usuário demo
   const demoEmail = 'demo@nightbull.com';
   let demoUser = await database.getFirstAsync('SELECT id FROM users WHERE email = ? LIMIT 1', demoEmail);
 
@@ -61,11 +61,11 @@ export const getDatabase = async () => {
   return databasePromise;
 };
 
-export const initializeDatabase = async () => {
+export const initializeDatabase = async () => { //função que inicializa o banco
   const database = await getDatabase();
-
+//tenta criar somente se não existir
   await database.execAsync(`
-    CREATE TABLE IF NOT EXISTS users (
+    CREATE TABLE IF NOT EXISTS users ( 
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
@@ -86,7 +86,7 @@ export const initializeDatabase = async () => {
     CREATE INDEX IF NOT EXISTS idx_transactions_ticker ON transactions (ticker);
     CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions (date);
     CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
-  `);
+  `); //INDICES CRIADOS PRA MAIS AGILIDADE
 
   const columns = await database.getAllAsync('PRAGMA table_info(transactions)');
   const hasUserColumn = columns.some((column) => column.name === 'user_id');
@@ -144,7 +144,7 @@ export const createUser = async ({ name, email, password }) => {
     email: cleanEmail,
   };
 };
-
+//Busca no banco um usuário que tenha exatamente aquele e-mail e aquela senha. Se achar, retorna os dados para o App.js
 export const authenticateUser = async ({ email, password }) => {
   const database = await getDatabase();
   const cleanEmail = normalizeEmail(email);
@@ -186,7 +186,7 @@ export const addTransaction = async ({ userId, type, ticker, quantity, price, da
       throw new Error('Quantidade insuficiente em carteira para vender.');
     }
   }
-
+//Esse é o momento em que a operação vira dado persistido no banco local com registro de compra ou venda
   return database.runAsync(
     'INSERT INTO transactions (user_id, type, ticker, quantity, price, date) VALUES (?, ?, ?, ?, ?, ?)',
     cleanUserId,
@@ -210,7 +210,7 @@ export const getTransactions = async (userId) => {
 
 export const calculatePositions = (transactions) => {
   const positionMap = new Map();
-
+//IMPORTANTE Ela percorre a lista de transações (transactions.forEach) uma por uma, na ordem em que aconteceram.
   transactions.forEach((transaction) => {
     const ticker = transaction.ticker.toUpperCase();
     const current = positionMap.get(ticker) || {

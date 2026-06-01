@@ -38,7 +38,7 @@ const navigationTheme = {
 export default function App() {
   const [databaseReady, setDatabaseReady] = useState(false);
   const [databaseError, setDatabaseError] = useState('');
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null); //salva o usuário atual autenticado para não haver conflito de carteiras
   const transitionOpacity = useRef(new Animated.Value(1)).current;
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -57,7 +57,7 @@ export default function App() {
     }
   }, []);
 
-  useEffect(() => {
+  useEffect(() => { //verifica se o banco foi carregado
     let mounted = true;
 
     initializeDatabase()
@@ -77,7 +77,7 @@ export default function App() {
     };
   }, []);
 
-  const transitionToUser = (nextUser) => {
+  const transitionToUser = (nextUser) => { // Em vez de mudar de tela de forma seca ao fazer login, esta função usa o Animated.timing
     Animated.timing(transitionOpacity, {
       toValue: 0,
       duration: 120,
@@ -92,7 +92,7 @@ export default function App() {
     });
   };
 
-  if (!fontsLoaded || !databaseReady) {
+  if (!fontsLoaded || !databaseReady) { // se as fontes ou o banco não iniciar, ele mantém a splash screen
     return (
       <SafeAreaProvider>
         <View style={styles.splash}>
@@ -105,8 +105,8 @@ export default function App() {
     );
   }
 
-  return (
-    <SafeAreaProvider>
+  return ( //verifica a variável currentUser. Se ela tiver dados, renderiza o painel do app (AppNavigator). Se estiver vazia (null), renderiza a tela de login (AuthScreen)
+    <SafeAreaProvider> 
       <View style={styles.root}>
         <StatusBar style="light" backgroundColor={colors.background} />
         <Animated.View style={[styles.root, { opacity: transitionOpacity }]}>

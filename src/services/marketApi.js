@@ -1,7 +1,7 @@
 import { normalizeTicker } from '../utils/formatters';
 
 const BRAPI_BASE_URL = 'https://brapi.dev/api/quote';
-
+//sistema de SOS caso de algo errado na api da BRAPI
 const mockPrices = {
   PETR4: { price: 38.42, changePercent: 0.74, shortName: 'Petrobras PN' },
   PETR3: { price: 41.1, changePercent: 0.62, shortName: 'Petrobras ON' },
@@ -147,9 +147,9 @@ export const fetchQuote = async (ticker) => {
     throw new Error('Informe um ticker válido.');
   }
 
-  const controller = new AbortController();
+  const controller = new AbortController(); //pausa a pesquisa caso a api demore mais de 8 segundos pra responder.
   const timeout = setTimeout(() => controller.abort(), 8000);
-
+//o app bate na URL da Brapi, se n tiver resposta, entra no mock, se tiver, converte o JSON no atual formatado.
   try {
     const response = await fetch(`${BRAPI_BASE_URL}/${cleanTicker}`, {
       signal: controller.signal,
@@ -186,7 +186,7 @@ export const fetchQuote = async (ticker) => {
     clearTimeout(timeout);
   }
 };
-
+//pesquisa o preço atualizado de todas na homescreen
 export const fetchQuotes = async (tickers) => {
   const uniqueTickers = Array.from(new Set(tickers.map(normalizeTicker).filter(Boolean)));
   const quotes = await Promise.all(
@@ -211,6 +211,6 @@ export const fetchFinancialNews = async (tickers = []) => {
   const filteredNews = assetRelatedNews.filter((item) =>
     item.tickers.some((ticker) => normalizedTickers.includes(ticker)),
   );
-
+//ve se tem algo na carteira, se tiver, aparece o filtro
   return filteredNews.length ? filteredNews : [];
 };
