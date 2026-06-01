@@ -16,63 +16,63 @@ import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
 const problemItems = [
-  'Muitos investidores pequenos acompanham ações, FIIs e ETFs em planilhas separadas ou em aplicativos com excesso de informação.',
-  'Essa separação dificulta saber rapidamente quanto foi investido, qual é o preço médio e como a carteira está distribuída.',
-  'Também existe o risco de depender de conexão ou de serviços externos durante uma apresentação acadêmica.',
+  'No acompanhamento manual, ações, FIIs e ETFs acabam ficando espalhados entre planilhas, notas e consultas em sites diferentes.',
+  'Com isso, informações simples como preço médio, custo total e distribuição da carteira deixam de ficar claras no dia a dia.',
+  'Para a apresentação, também era importante que o app continuasse demonstrável mesmo se alguma API externa falhasse.',
 ];
 
 const motivationItems = [
-  'O objetivo foi criar um aplicativo simples de apresentar, mas com um fluxo real de uso.',
-  'A ideia foi unir cadastro, operações, persistência local, cotações, relatórios e notícias em uma única experiência.',
-  'A identidade visual foi pensada para transmitir profissionalismo, com dark theme e foco em dados financeiros.',
+  'A proposta foi montar um aplicativo simples de explicar, mas sem ficar apenas em telas estáticas.',
+  'O fluxo escolhido passa por cadastro, operações, banco local, cotações, relatórios e notícias no mesmo app.',
+  'A interface segue um visual escuro e mais sóbrio para combinar com a ideia de terminal financeiro.',
 ];
 
 const technicalDecisions = [
   {
     icon: Smartphone,
     title: 'React Native com Expo',
-    description: 'Expo foi utilizado por facilitar a execução em Android e Web, tornando a demonstração mais flexível em emulador ou navegador.',
+    description: 'Expo entrou no projeto para facilitar testes em Android e Web sem precisar configurar um projeto nativo completo.',
   },
   {
     icon: Route,
     title: 'Navegação por abas',
-    description: 'O app foi organizado em áreas objetivas: Carteira, Operar, Relatórios, Notícias e Sobre. Cada aba representa uma parte do fluxo do investidor.',
+    description: 'As abas foram separadas de acordo com o uso: acompanhar carteira, registrar operação, analisar relatórios, ler notícias e explicar o projeto.',
   },
   {
     icon: Database,
     title: 'SQLite local',
-    description: 'O expo-sqlite grava usuários e transações no próprio dispositivo, mantendo as operações salvas mesmo após fechar o app.',
+    description: 'O expo-sqlite guarda usuários e transações no dispositivo. Isso deixa claro o uso de persistência local e evita depender de servidor.',
   },
   {
     icon: LineChart,
     title: 'Cotação via Brapi',
-    description: 'A cotação dos ativos é buscada pela Brapi. Quando necessário, o app usa uma lista local conhecida para evitar que a apresentação dependa totalmente da API.',
+    description: 'A Brapi é usada para buscar cotações. Para não travar a demonstração, alguns ativos conhecidos têm fallback local.',
   },
   {
     icon: BarChart3,
     title: 'Relatórios visuais',
-    description: 'Os relatórios mostram patrimônio, custo, valor atual e distribuição por tipo de ativo, facilitando a interpretação da carteira.',
+    description: 'Os relatórios resumem custo, valor atual e alocação por classe. A intenção é responder rápido onde o dinheiro está concentrado.',
   },
   {
     icon: Newspaper,
     title: 'Notícias filtradas',
-    description: 'As notícias têm filtro geral e filtro pelos meus ativos. Mantive dados mockados e links clicáveis para garantir estabilidade durante a demonstração.',
+    description: 'As notícias foram divididas entre visão geral do mercado e assuntos ligados à carteira. Os dados são controlados para evitar surpresa na hora da apresentação.',
   },
   {
     icon: ShieldCheck,
     title: 'Validações de entrada',
-    description: 'O app não aceita qualquer texto como ticker. O usuário escolhe ativos reconhecidos, informa quantidade e pode ajustar o preço realmente pago.',
+    description: 'A entrada de ticker foi limitada a ativos conhecidos, e o preço pago pode ser ajustado para refletir a operação real do usuário.',
   },
 ];
 
 const featureItems = [
-  'Cadastro e login local de usuário.',
-  'Compra e venda de ativos com preço pago editável.',
+  'Cadastro e login salvos localmente.',
+  'Compra e venda com cotação sugerida e preço pago editável.',
   'Cálculo de quantidade atual, custo total e preço médio.',
-  'Dashboard com patrimônio, rentabilidade e melhores/piores ativos.',
+  'Dashboard com patrimônio, rentabilidade e destaques da carteira.',
   'Histórico de transações e tela de detalhe por ativo.',
   'Relatórios por ativo e por classe: ações, FIIs, ETFs e outros.',
-  'Notícias gerais e notícias filtradas pelos ativos da carteira.',
+  'Notícias separadas entre mercado geral e ativos da carteira.',
 ];
 
 const BulletList = ({ items }) => (
@@ -104,15 +104,14 @@ const InfoCard = ({ item }) => {
 
 export const AboutScreen = () => (
   <ScreenContainer scroll>
-    <Header title="Sobre" subtitle="Meu roteiro de apresentação do projeto" />
+    <Header title="Sobre" subtitle="Resumo do projeto e das decisões" />
 
     <View style={styles.heroCard}>
       <Text style={styles.heroEyebrow}>NightBull</Text>
-      <Text style={styles.heroTitle}>Minha carteira de investimentos</Text>
+      <Text style={styles.heroTitle}>Carteira de investimentos em React Native</Text>
       <Text style={styles.heroText}>
         Este aplicativo foi desenvolvido como uma proposta acadêmica para acompanhar uma carteira de investimentos de forma simples,
-        local e visual. A ideia foi criar algo com aparência de produto real, deixando claro o uso das tecnologias
-        exigidas no projeto.
+        local e visual. A intenção foi entregar algo funcional, com cara de produto, mas ainda fácil de explicar tecnicamente.
       </Text>
     </View>
 
@@ -129,9 +128,9 @@ export const AboutScreen = () => (
       </View>
       <Text style={styles.statementTitle}>Centralizar o acompanhamento da carteira</Text>
       <Text style={styles.statementText}>
-        A solução proposta centraliza o registro de operações, a persistência local, a busca de cotações,
-        o cálculo de preço médio e a visualização da composição da carteira. O objetivo é reduzir a complexidade e mostrar rapidamente
-        as informações que mais importam para o investidor.
+        A solução centraliza o registro de operações, a persistência local, a consulta de cotações,
+        o cálculo de preço médio e a visualização da composição da carteira. O foco está em reduzir etapas manuais
+        e destacar as informações que realmente ajudam na leitura da posição do investidor.
       </Text>
     </View>
 
