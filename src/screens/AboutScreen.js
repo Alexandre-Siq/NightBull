@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import {
   BarChart3,
-  CheckCircle2,
   Database,
   LineChart,
   Newspaper,
@@ -76,16 +75,6 @@ const featureItems = [
   'Notícias gerais e notícias filtradas pelos ativos da carteira.',
 ];
 
-const presentationSteps = [
-  'Começo explicando o problema: acompanhar investimentos de forma simples e consolidada.',
-  'Mostro o login e a separação dos dados por usuário.',
-  'Registro uma compra na aba Operar, selecionando um ticker válido da B3.',
-  'Volto para Carteira e mostro o patrimônio, o preço médio e o histórico.',
-  'Abro o detalhe de um ativo para demonstrar os cálculos mais importantes.',
-  'Mostro Relatórios para explicar distribuição e custo vs. valor atual.',
-  'Finalizo em Notícias e mostro a diferença entre notícias gerais e meus ativos.',
-];
-
 const BulletList = ({ items }) => (
   <View style={styles.bulletCard}>
     {items.map((item) => (
@@ -155,19 +144,6 @@ export const AboutScreen = () => (
 
     <SectionLabel style={styles.nextSection}>Funcionalidades entregues</SectionLabel>
     <BulletList items={featureItems} />
-
-    <SectionLabel style={styles.nextSection}>Como eu apresentaria</SectionLabel>
-    <View style={styles.stepsCard}>
-      {presentationSteps.map((step, index) => (
-        <View key={step} style={styles.stepRow}>
-          <View style={styles.stepNumber}>
-            <Text style={styles.stepNumberText}>{String(index + 1).padStart(2, '0')}</Text>
-          </View>
-          <Text style={styles.stepText}>{step}</Text>
-          <CheckCircle2 color={colors.success} size={16} strokeWidth={1.8} />
-        </View>
-      ))}
-    </View>
   </ScreenContainer>
 );
 
@@ -295,38 +271,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     marginTop: 5,
-  },
-  stepsCard: {
-    backgroundColor: colors.card,
-    borderColor: colors.border,
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 12,
-  },
-  stepRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    paddingVertical: 9,
-  },
-  stepNumber: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: 10,
-    height: 30,
-    justifyContent: 'center',
-    marginRight: 10,
-    width: 34,
-  },
-  stepNumberText: {
-    color: colors.foreground,
-    fontFamily: fonts.monoMedium,
-    fontSize: 11,
-  },
-  stepText: {
-    color: colors.foreground,
-    flex: 1,
-    fontFamily: fonts.bodyMedium,
-    fontSize: 13,
-    lineHeight: 19,
   },
 });
