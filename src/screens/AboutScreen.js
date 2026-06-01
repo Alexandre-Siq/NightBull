@@ -1,28 +1,101 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { CheckCircle2, Database, LineChart, Newspaper, Route, ShieldCheck, Smartphone } from 'lucide-react-native';
+import {
+  BarChart3,
+  CheckCircle2,
+  Database,
+  LineChart,
+  Newspaper,
+  Route,
+  ShieldCheck,
+  Smartphone,
+  Target,
+} from 'lucide-react-native';
 import { Header } from '../components/Header';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SectionLabel } from '../components/SectionLabel';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
-const stackItems = [
-  { icon: Smartphone, title: 'React Native + Expo', description: 'Aplicativo mobile multiplataforma com execução em Android e Web.' },
-  { icon: Route, title: 'React Navigation', description: 'Navegação por abas com fluxo simples para apresentação.' },
-  { icon: Database, title: 'expo-sqlite', description: 'Persistência local de usuários, compras e vendas.' },
-  { icon: LineChart, title: 'Brapi + gráficos', description: 'Cotação de ativos, relatórios SVG e comparação de carteira.' },
-  { icon: Newspaper, title: 'Notícias filtradas', description: 'Cards mockados e clicáveis, com filtro geral ou por ativos da carteira.' },
-  { icon: ShieldCheck, title: 'Validação local', description: 'Tickers aceitos por Brapi ou lista local conhecida da B3.' },
+const problemItems = [
+  'Muitos investidores pequenos acompanham ações, FIIs e ETFs em planilhas separadas ou em aplicativos com excesso de informação.',
+  'Essa separação dificulta saber rapidamente quanto foi investido, qual é o preço médio e como a carteira está distribuída.',
+  'Também existe o risco de depender de conexão ou de serviços externos durante uma apresentação acadêmica.',
+];
+
+const motivationItems = [
+  'Eu quis criar um aplicativo que fosse simples de apresentar, mas que tivesse um fluxo real de uso.',
+  'A ideia foi unir cadastro, operações, persistência local, cotações, relatórios e notícias em uma única experiência.',
+  'Também quis trabalhar uma identidade visual mais profissional, com dark theme e foco em dados financeiros.',
+];
+
+const technicalDecisions = [
+  {
+    icon: Smartphone,
+    title: 'React Native com Expo',
+    description: 'Escolhi Expo porque ele facilita a execução em Android e Web. Isso deixa o projeto mais seguro para apresentação, já que posso demonstrar em emulador ou navegador.',
+  },
+  {
+    icon: Route,
+    title: 'Navegação por abas',
+    description: 'Organizei o app em áreas bem objetivas: Carteira, Operar, Relatórios, Notícias e Sobre. Cada aba representa uma parte do fluxo do investidor.',
+  },
+  {
+    icon: Database,
+    title: 'SQLite local',
+    description: 'Usei expo-sqlite para gravar usuários e transações no próprio dispositivo. Assim, as operações continuam salvas mesmo fechando o app.',
+  },
+  {
+    icon: LineChart,
+    title: 'Cotação via Brapi',
+    description: 'A cotação dos ativos é buscada pela Brapi. Quando necessário, o app usa uma lista local conhecida para evitar que a apresentação dependa totalmente da API.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Relatórios visuais',
+    description: 'Criei relatórios para mostrar patrimônio, custo, valor atual e distribuição por tipo de ativo. Isso torna a carteira mais fácil de interpretar.',
+  },
+  {
+    icon: Newspaper,
+    title: 'Notícias filtradas',
+    description: 'As notícias têm filtro geral e filtro pelos meus ativos. Mantive dados mockados e links clicáveis para garantir estabilidade durante a demonstração.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Validações de entrada',
+    description: 'O app não aceita qualquer texto como ticker. O usuário escolhe ativos reconhecidos, informa quantidade e pode ajustar o preço realmente pago.',
+  },
+];
+
+const featureItems = [
+  'Cadastro e login local de usuário.',
+  'Compra e venda de ativos com preço pago editável.',
+  'Cálculo de quantidade atual, custo total e preço médio.',
+  'Dashboard com patrimônio, rentabilidade e melhores/piores ativos.',
+  'Histórico de transações e tela de detalhe por ativo.',
+  'Relatórios por ativo e por classe: ações, FIIs, ETFs e outros.',
+  'Notícias gerais e notícias filtradas pelos ativos da carteira.',
 ];
 
 const presentationSteps = [
-  'Entrar com a carteira demo.',
-  'Registrar compra ou venda em Operar.',
-  'Conferir patrimônio e histórico na Carteira.',
-  'Abrir detalhes de um ativo tocando no card.',
-  'Analisar distribuição em Relatórios.',
-  'Filtrar Notícias por Meus ativos.',
+  'Começo explicando o problema: acompanhar investimentos de forma simples e consolidada.',
+  'Mostro o login e a separação dos dados por usuário.',
+  'Registro uma compra na aba Operar, selecionando um ticker válido da B3.',
+  'Volto para Carteira e mostro o patrimônio, o preço médio e o histórico.',
+  'Abro o detalhe de um ativo para demonstrar os cálculos mais importantes.',
+  'Mostro Relatórios para explicar distribuição e custo vs. valor atual.',
+  'Finalizo em Notícias e mostro a diferença entre notícias gerais e meus ativos.',
 ];
+
+const BulletList = ({ items }) => (
+  <View style={styles.bulletCard}>
+    {items.map((item) => (
+      <View key={item} style={styles.bulletRow}>
+        <View style={styles.bulletDot} />
+        <Text style={styles.bulletText}>{item}</Text>
+      </View>
+    ))}
+  </View>
+);
 
 const InfoCard = ({ item }) => {
   const Icon = item.icon;
@@ -42,21 +115,48 @@ const InfoCard = ({ item }) => {
 
 export const AboutScreen = () => (
   <ScreenContainer scroll>
-    <Header title="Sobre" subtitle="Resumo técnico para apresentação acadêmica" />
+    <Header title="Sobre" subtitle="Meu roteiro de apresentação do projeto" />
 
     <View style={styles.heroCard}>
       <Text style={styles.heroEyebrow}>NightBull</Text>
-      <Text style={styles.heroTitle}>Carteira de investimentos local</Text>
+      <Text style={styles.heroTitle}>Minha carteira de investimentos</Text>
       <Text style={styles.heroText}>
-        Projeto acadêmico em dark theme para registrar compras e vendas, calcular patrimônio,
-        acompanhar preço médio, visualizar relatórios e consultar notícias financeiras.
+        Eu desenvolvi este aplicativo como uma proposta acadêmica para acompanhar uma carteira de investimentos de forma simples,
+        local e visual. A ideia foi criar algo que parecesse um produto real, mas que também deixasse claro o uso das tecnologias
+        exigidas no projeto.
+      </Text>
+      <Text style={styles.heroText}>
+        Por isso, esta aba funciona como meu roteiro de apresentação. Em vez de depender de slides, eu consigo explicar o problema,
+        a motivação, as decisões técnicas e as principais funcionalidades diretamente dentro do app.
       </Text>
     </View>
 
-    <SectionLabel style={styles.nextSection}>Tecnologias e módulos</SectionLabel>
-    {stackItems.map((item) => <InfoCard key={item.title} item={item} />)}
+    <SectionLabel style={styles.nextSection}>Problema que resolvo</SectionLabel>
+    <BulletList items={problemItems} />
 
-    <SectionLabel style={styles.nextSection}>Roteiro de apresentação</SectionLabel>
+    <SectionLabel style={styles.nextSection}>Motivação</SectionLabel>
+    <BulletList items={motivationItems} />
+
+    <SectionLabel style={styles.nextSection}>Solução proposta</SectionLabel>
+    <View style={styles.statementCard}>
+      <View style={styles.statementIcon}>
+        <Target color={colors.success} size={22} strokeWidth={2} />
+      </View>
+      <Text style={styles.statementTitle}>Centralizar o acompanhamento da carteira</Text>
+      <Text style={styles.statementText}>
+        Minha solução foi criar um app em que eu consigo registrar operações, persistir os dados localmente, buscar cotações,
+        calcular preço médio e visualizar a composição da carteira. O objetivo é reduzir a complexidade e mostrar rapidamente
+        as informações que mais importam para o investidor.
+      </Text>
+    </View>
+
+    <SectionLabel style={styles.nextSection}>Decisões técnicas</SectionLabel>
+    {technicalDecisions.map((item) => <InfoCard key={item.title} item={item} />)}
+
+    <SectionLabel style={styles.nextSection}>Funcionalidades entregues</SectionLabel>
+    <BulletList items={featureItems} />
+
+    <SectionLabel style={styles.nextSection}>Como eu apresentaria</SectionLabel>
     <View style={styles.stepsCard}>
       {presentationSteps.map((step, index) => (
         <View key={step} style={styles.stepRow}>
@@ -89,7 +189,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     color: colors.foreground,
     fontFamily: fonts.displayBold,
-    fontSize: 24,
+    fontSize: 25,
     letterSpacing: -0.4,
     marginTop: 10,
   },
@@ -102,6 +202,63 @@ const styles = StyleSheet.create({
   },
   nextSection: {
     marginTop: 24,
+  },
+  bulletCard: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 14,
+  },
+  bulletRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    paddingVertical: 8,
+  },
+  bulletDot: {
+    backgroundColor: colors.success,
+    borderRadius: 4,
+    height: 8,
+    marginRight: 10,
+    marginTop: 6,
+    width: 8,
+  },
+  bulletText: {
+    color: colors.mutedForeground,
+    flex: 1,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  statementCard: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 16,
+  },
+  statementIcon: {
+    alignItems: 'center',
+    backgroundColor: `${colors.success}1F`,
+    borderColor: `${colors.success}59`,
+    borderRadius: 14,
+    borderWidth: 1,
+    height: 44,
+    justifyContent: 'center',
+    marginBottom: 14,
+    width: 44,
+  },
+  statementTitle: {
+    color: colors.foreground,
+    fontFamily: fonts.displaySemiBold,
+    fontSize: 20,
+  },
+  statementText: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 13,
+    lineHeight: 21,
+    marginTop: 10,
   },
   infoCard: {
     alignItems: 'center',
@@ -170,5 +327,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
+    lineHeight: 19,
   },
 });
