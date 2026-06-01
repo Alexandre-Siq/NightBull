@@ -1,59 +1,123 @@
-import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { ArrowDownLeft, ArrowUpRight, Search } from 'lucide-react-native';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ArrowDownLeft, ArrowUpRight, CheckCircle2 } from 'lucide-react-native';
 import { Header } from '../components/Header';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SectionLabel } from '../components/SectionLabel';
 import { addTransaction } from '../database/database';
-import { fetchQuote } from '../services/marketApi';
+import { b3AssetOptions, fetchQuote } from '../services/marketApi';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { formatCurrency, normalizeTicker } from '../utils/formatters';
 
-export const TradeScreen = () => {
+
+const ConfirmationCard = ({ transaction }) => {
+  if (!transaction) {
+    return null;
+  }
+
+  const isBuy = transaction.type === 'BUY';
+  const accent = isBuy ? colors.success : colors.danger;
+
+  return (
+    <View style={[styles.confirmationCard, { borderColor: `${accent}59`, backgroundColor: `${accent}1F` }]}>
+      <View style={styles.confirmationHeader}>
+        <CheckCircle2 color={accent} size={19} strokeWidth={2} />
+        <Text style={[styles.confirmationTitle, { color: accent }]}>
+          {isBuy ? 'Compra registrada' : 'Venda registrada'}
+        </Text>
+      </View>
+      <View style={styles.confirmationGrid}>
+        <View style={styles.confirmationItem}>
+          <Text style={styles.confirmationLabel}>Ticker</Text>
+          <Text style={styles.confirmationValue}>{transaction.ticker}</Text>
+        </View>
+        <View style={styles.confirmationItem}>
+          <Text style={styles.confirmationLabel}>Quantidade</Text>
+          <Text style={styles.confirmationValue}>{transaction.quantity}</Text>
+        </View>
+        <View style={styles.confirmationItem}>
+          <Text style={styles.confirmationLabel}>Preço pago</Text>
+          <Text style={styles.confirmationValue}>{formatCurrency(transaction.price)}</Text>
+        </View>
+        <View style={styles.confirmationItem}>
+          <Text style={styles.confirmationLabel}>Total</Text>
+          <Text style={styles.confirmationValue}>{formatCurrency(transaction.total)}</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+export const TradeScreen = ({ currentUser }) => {
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('');
+  const [paidPrice, setPaidPrice] = useState('');
   const [quote, setQuote] = useState(null);
+  const [lastTransaction, setLastTransaction] = useState(null);
   const [loadingQuote, setLoadingQuote] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const handleSearch = async () => {
-    const cleanTicker = normalizeTicker(ticker);
-
-    setError('');
-    setMessage('');
-    setQuote(null);
-
+  const parsePriceInput = (value) => Number.parseFloat(value.replace(',', '.'));
+  const cleanTicker = normalizeTicker(ticker);
+  const selectedQuoteReady = quote?.ticker === cleanTicker;
+  const tickerSuggestions = useMemo(() => {
     if (!cleanTicker) {
-      setError('Informe um ticker valido.');
-      return;
+      return [];
     }
 
+    return b3AssetOptions
+      .filter((asset) => {
+        const searchableName = asset.name.toUpperCase();
+
+        return asset.ticker.includes(cleanTicker) || searchableName.includes(cleanTicker);
+      })
+      .slice(0, 12);
+  }, [cleanTicker]);
+
+  const handleTickerChange = (value) => {
+    setTicker(normalizeTicker(value));
+    setQuote(null);
+    setPaidPrice('');
+    setMessage('');
+    setError('');
+    setLastTransaction(null);
+  };
+
+  const handleSelectTicker = async (asset) => {
+    setTicker(asset.ticker);
+    setError('');
+    setMessage('');
+    setLastTransaction(null);
+    setQuote(null);
+    setPaidPrice('');
     setLoadingQuote(true);
 
     try {
-      const nextQuote = await fetchQuote(cleanTicker);
+      const nextQuote = await fetchQuote(asset.ticker);
       setTicker(nextQuote.ticker);
       setQuote(nextQuote);
-      setMessage(nextQuote.source === 'brapi' ? 'Cotacao validada pela Brapi.' : 'Cotacao mock usada para apresentacao.');
+      setPaidPrice(String(nextQuote.price.toFixed(2)).replace('.', ','));
+      setMessage(nextQuote.source === 'brapi' ? 'Cotação carregada pela Brapi.' : 'Cotação mock usada para apresentação.');
     } catch (quoteError) {
-      setError(quoteError.message || 'Nao foi possivel validar o ticker.');
+      setError(quoteError.message || 'Não foi possível carregar a cotação.');
     } finally {
       setLoadingQuote(false);
     }
   };
 
   const handleTransaction = async (type) => {
-    const cleanTicker = normalizeTicker(ticker);
     const cleanQuantity = Number.parseInt(quantity, 10);
+    const cleanPaidPrice = parsePriceInput(paidPrice);
 
     setError('');
     setMessage('');
+    setLastTransaction(null);
 
-    if (!quote || quote.ticker !== cleanTicker) {
-      setError('Busque a cotacao antes de confirmar a operacao.');
+    if (!selectedQuoteReady) {
+      setError('Selecione um ativo da lista antes de confirmar a operação.');
       return;
     }
 
@@ -62,23 +126,39 @@ export const TradeScreen = () => {
       return;
     }
 
+    if (!Number.isFinite(cleanPaidPrice) || cleanPaidPrice <= 0) {
+      setError('Informe o preço pago por ativo.');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       await addTransaction({
+        userId: currentUser.id,
         type,
         ticker: cleanTicker,
         quantity: cleanQuantity,
-        price: quote.price,
+        price: cleanPaidPrice,
         date: new Date().toISOString(),
       });
 
-      setMessage(type === 'BUY' ? 'Compra registrada.' : 'Venda registrada.');
+      setLastTransaction({
+        type,
+        ticker: cleanTicker,
+        quantity: cleanQuantity,
+        price: cleanPaidPrice,
+        total: cleanQuantity * cleanPaidPrice,
+        date: new Date().toISOString(),
+      });
+      setMessage('');
+      setError('');
       setTicker('');
       setQuantity('');
+      setPaidPrice('');
       setQuote(null);
     } catch (transactionError) {
-      setError(transactionError.message || 'Nao foi possivel registrar a transacao.');
+      setError(transactionError.message || 'Não foi possível registrar a transação.');
     } finally {
       setSubmitting(false);
     }
@@ -87,22 +167,43 @@ export const TradeScreen = () => {
   return (
     <ScreenContainer scroll>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Header title="Operar" subtitle="Nova transacao com preco de mercado" />
+        <Header title="Operar" subtitle="Nova transação com preço de mercado" />
 
         <View style={styles.formCard}>
           <SectionLabel>Ticker</SectionLabel>
           <TextInput
             value={ticker}
-            onChangeText={(value) => {
-              setTicker(normalizeTicker(value));
-              setQuote(null);
-            }}
+            onChangeText={handleTickerChange}
             placeholder="PETR4"
             placeholderTextColor={colors.mutedForeground}
             autoCapitalize="characters"
             autoCorrect={false}
             style={styles.input}
           />
+
+          {!!cleanTicker && !selectedQuoteReady && !loadingQuote && (
+            <View style={styles.suggestionBox}>
+              {tickerSuggestions.length ? (
+                <ScrollView nestedScrollEnabled style={styles.suggestionScroll} keyboardShouldPersistTaps="handled">
+                  {tickerSuggestions.map((asset) => (
+                    <Pressable
+                      key={asset.ticker}
+                      onPress={() => handleSelectTicker(asset)}
+                      style={({ pressed }) => [styles.suggestionItem, pressed && styles.pressed]}
+                    >
+                      <Text style={styles.suggestionTicker}>{asset.ticker}</Text>
+                      <Text style={styles.suggestionName}>{asset.name}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              ) : (
+                <View style={styles.noSuggestionItem}>
+                  <Text style={styles.noSuggestionTitle}>Nenhum ativo compatível</Text>
+                  <Text style={styles.noSuggestionText}>Digite um ticker reconhecido da B3, como PETR4 ou VALE3.</Text>
+                </View>
+              )}
+            </View>
+          )}
 
           <SectionLabel style={styles.fieldLabel}>Quantidade</SectionLabel>
           <TextInput
@@ -114,20 +215,25 @@ export const TradeScreen = () => {
             style={styles.input}
           />
 
-          <Pressable
-            onPress={handleSearch}
-            disabled={loadingQuote || submitting}
-            style={({ pressed }) => [styles.searchButton, pressed && styles.pressed]}
-          >
-            {loadingQuote ? (
+          <SectionLabel style={styles.fieldLabel}>Preço pago por ativo</SectionLabel>
+          <TextInput
+            value={paidPrice}
+            onChangeText={setPaidPrice}
+            placeholder="0,00"
+            placeholderTextColor={colors.mutedForeground}
+            keyboardType="decimal-pad"
+            style={styles.input}
+          />
+          <Text style={styles.helperText}>
+            A cotação atual preenche este campo como sugestão, mas você pode informar o valor realmente pago.
+          </Text>
+
+          {loadingQuote && (
+            <View style={styles.loadingQuoteRow}>
               <ActivityIndicator color={colors.foreground} />
-            ) : (
-              <>
-                <Search color={colors.foreground} size={16} strokeWidth={2} />
-                <Text style={styles.searchButtonText}>Buscar cotacao</Text>
-              </>
-            )}
-          </Pressable>
+              <Text style={styles.loadingQuoteText}>Carregando cotação</Text>
+            </View>
+          )}
 
           {quote && (
             <View style={styles.quoteCard}>
@@ -137,6 +243,7 @@ export const TradeScreen = () => {
               </View>
               <View style={styles.quoteRight}>
                 <Text style={styles.quotePrice}>{formatCurrency(quote.price)}</Text>
+                <Text style={styles.quoteCaption}>Cotação atual</Text>
                 <Text style={styles.quoteSource}>{quote.source === 'brapi' ? 'Brapi' : 'Mock'}</Text>
               </View>
             </View>
@@ -144,6 +251,7 @@ export const TradeScreen = () => {
 
           {!!error && <Text style={styles.errorText}>{error}</Text>}
           {!!message && <Text style={styles.messageText}>{message}</Text>}
+          <ConfirmationCard transaction={lastTransaction} />
 
           <View style={styles.actionGrid}>
             <Pressable
@@ -202,7 +310,58 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 13,
   },
-  searchButton: {
+  helperText: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 8,
+  },
+  suggestionBox: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  suggestionScroll: {
+    maxHeight: 190,
+  },
+  suggestionItem: {
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  suggestionTicker: {
+    color: colors.foreground,
+    fontFamily: fonts.monoMedium,
+    fontSize: 14,
+  },
+  suggestionName: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  noSuggestionItem: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  noSuggestionTitle: {
+    color: colors.foreground,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+  },
+  noSuggestionText: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 5,
+  },
+  loadingQuoteRow: {
     alignItems: 'center',
     backgroundColor: colors.surfaceElevated,
     borderColor: colors.border,
@@ -211,13 +370,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     justifyContent: 'center',
-    marginTop: 18,
-    minHeight: 48,
+    marginTop: 16,
+    minHeight: 46,
   },
-  searchButtonText: {
+  loadingQuoteText: {
     color: colors.foreground,
     fontFamily: fonts.bodySemiBold,
-    fontSize: 14,
+    fontSize: 13,
   },
   quoteCard: {
     alignItems: 'center',
@@ -251,6 +410,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontVariant: ['tabular-nums'],
   },
+  quoteCaption: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyRegular,
+    fontSize: 10,
+    marginTop: 4,
+  },
   quoteSource: {
     color: colors.mutedForeground,
     fontFamily: fonts.monoMedium,
@@ -258,8 +423,52 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textTransform: 'uppercase',
   },
-  errorText: {
-    color: colors.danger,
+
+  confirmationCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    marginTop: 16,
+    padding: 14,
+  },
+  confirmationHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  confirmationTitle: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+  },
+  confirmationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 14,
+  },
+  confirmationItem: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    width: '48%',
+  },
+  confirmationLabel: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 9,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  confirmationValue: {
+    color: colors.foreground,
+    fontFamily: fonts.monoMedium,
+    fontSize: 12,
+    fontVariant: ['tabular-nums'],
+    marginTop: 6,
+  },
+  errorText: {    color: colors.danger,
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
     lineHeight: 19,

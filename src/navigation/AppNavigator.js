@@ -1,31 +1,40 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { BriefcaseBusiness, ChartNoAxesColumn, Newspaper, Repeat2 } from 'lucide-react-native';
+import { StyleSheet, View } from 'react-native';
+import { BriefcaseBusiness, ChartNoAxesColumn, Info, Newspaper, Repeat2 } from 'lucide-react-native';
 import { HomeScreen } from '../screens/HomeScreen';
 import { TradeScreen } from '../screens/TradeScreen';
 import { ReportsScreen } from '../screens/ReportsScreen';
 import { NewsScreen } from '../screens/NewsScreen';
+import { AboutScreen } from '../screens/AboutScreen';
 import { colors } from '../theme/colors';
-import { fonts } from '../theme/typography';
 
 const Tab = createBottomTabNavigator();
 
 const tabIcon = (Icon) =>
   function IconRenderer({ color, focused }) {
-    return <Icon color={color} size={20} strokeWidth={focused ? 2.2 : 1.6} />;
+    return (
+      <View style={styles.iconFrame}>
+        <Icon color={color} size={21} strokeWidth={focused ? 2.2 : 1.6} />
+      </View>
+    );
   };
 
-export const AppNavigator = () => (
+export const AppNavigator = ({ currentUser, onSignOut }) => (
   <Tab.Navigator
+    detachInactiveScreens={false}
     screenOptions={{
-      animation: 'fade',
+      animation: 'shift',
       headerShown: false,
       sceneStyle: { backgroundColor: colors.background },
       tabBarActiveTintColor: colors.foreground,
       tabBarInactiveTintColor: colors.mutedForeground,
-      tabBarLabelStyle: {
-        fontFamily: fonts.bodyMedium,
-        fontSize: 10,
-        marginTop: 2,
+      tabBarShowLabel: false,
+      tabBarIconStyle: {
+        alignItems: 'center',
+        height: 52,
+        justifyContent: 'center',
+        marginTop: 0,
+        width: 52,
       },
       tabBarStyle: {
         backgroundColor: colors.card,
@@ -33,37 +42,46 @@ export const AppNavigator = () => (
         borderRadius: 22,
         borderTopWidth: 1,
         bottom: 18,
-        height: 68,
+        height: 64,
         left: 18,
-        paddingBottom: 10,
-        paddingTop: 10,
+        overflow: 'visible',
+        paddingBottom: 0,
+        paddingTop: 0,
         position: 'absolute',
         right: 18,
       },
       tabBarItemStyle: {
+        alignItems: 'center',
         borderRadius: 18,
+        height: 64,
+        justifyContent: 'center',
+        paddingBottom: 0,
+        paddingTop: 0,
       },
     }}
   >
-    <Tab.Screen
-      name="Home"
-      component={HomeScreen}
-      options={{ title: 'Carteira', tabBarIcon: tabIcon(BriefcaseBusiness) }}
-    />
-    <Tab.Screen
-      name="Trade"
-      component={TradeScreen}
-      options={{ title: 'Operar', tabBarIcon: tabIcon(Repeat2) }}
-    />
-    <Tab.Screen
-      name="Reports"
-      component={ReportsScreen}
-      options={{ title: 'Relatorios', tabBarIcon: tabIcon(ChartNoAxesColumn) }}
-    />
-    <Tab.Screen
-      name="News"
-      component={NewsScreen}
-      options={{ title: 'Noticias', tabBarIcon: tabIcon(Newspaper) }}
-    />
+    <Tab.Screen name="Home" options={{ title: 'Carteira', tabBarIcon: tabIcon(BriefcaseBusiness) }}>
+      {() => <HomeScreen currentUser={currentUser} onSignOut={onSignOut} />}
+    </Tab.Screen>
+    <Tab.Screen name="Trade" options={{ title: 'Operar', tabBarIcon: tabIcon(Repeat2) }}>
+      {() => <TradeScreen currentUser={currentUser} />}
+    </Tab.Screen>
+    <Tab.Screen name="Reports" options={{ title: 'Relatórios', tabBarIcon: tabIcon(ChartNoAxesColumn) }}>
+      {() => <ReportsScreen currentUser={currentUser} />}
+    </Tab.Screen>
+    <Tab.Screen name="News" options={{ title: 'Notícias', tabBarIcon: tabIcon(Newspaper) }}>
+      {() => <NewsScreen currentUser={currentUser} />}
+    </Tab.Screen>
+    <Tab.Screen name="About" component={AboutScreen} options={{ title: 'Sobre', tabBarIcon: tabIcon(Info) }} />
   </Tab.Navigator>
 );
+
+
+const styles = StyleSheet.create({
+  iconFrame: {
+    alignItems: 'center',
+    height: 52,
+    justifyContent: 'center',
+    width: 52,
+  },
+});

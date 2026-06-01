@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -17,6 +17,7 @@ import {
   SpaceGrotesk_700Bold,
 } from '@expo-google-fonts/space-grotesk';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { AuthScreen } from './src/screens/AuthScreen';
 import { initializeDatabase } from './src/database/database';
 import { colors } from './src/theme/colors';
 import { fonts } from './src/theme/typography';
@@ -37,6 +38,8 @@ const navigationTheme = {
 export default function App() {
   const [databaseReady, setDatabaseReady] = useState(false);
   const [databaseError, setDatabaseError] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
+  const transitionOpacity = useRef(new Animated.Value(1)).current;
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -45,6 +48,14 @@ export default function App() {
     SpaceGrotesk_600SemiBold,
     SpaceGrotesk_700Bold,
   });
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.documentElement.style.backgroundColor = colors.background;
+      document.body.style.backgroundColor = colors.background;
+      document.body.style.margin = '0';
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -66,28 +77,57 @@ export default function App() {
     };
   }, []);
 
+  const transitionToUser = (nextUser) => {
+    Animated.timing(transitionOpacity, {
+      toValue: 0,
+      duration: 120,
+      useNativeDriver: true,
+    }).start(() => {
+      setCurrentUser(nextUser);
+      Animated.timing(transitionOpacity, {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      }).start();
+    });
+  };
+
   if (!fontsLoaded || !databaseReady) {
     return (
-      <View style={styles.splash}>
-        <StatusBar style="light" />
-        <ActivityIndicator color={colors.foreground} />
-        <Text style={styles.splashTitle}>NightBull</Text>
-        <Text style={styles.splashText}>{databaseError || 'Preparando carteira local'}</Text>
-      </View>
+      <SafeAreaProvider>
+        <View style={styles.splash}>
+          <StatusBar style="light" backgroundColor={colors.background} />
+          <ActivityIndicator color={colors.foreground} />
+          <Text style={styles.splashTitle}>NightBull</Text>
+          <Text style={styles.splashText}>{databaseError || 'Preparando carteira local'}</Text>
+        </View>
+      </SafeAreaProvider>
     );
   }
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme}>
-        <StatusBar style="light" />
-        <AppNavigator />
-      </NavigationContainer>
+      <View style={styles.root}>
+        <StatusBar style="light" backgroundColor={colors.background} />
+        <Animated.View style={[styles.root, { opacity: transitionOpacity }]}>
+          {currentUser ? (
+            <NavigationContainer theme={navigationTheme}>
+              <AppNavigator currentUser={currentUser} onSignOut={() => transitionToUser(null)} />
+            </NavigationContainer>
+          ) : (
+            <AuthScreen onAuthenticated={transitionToUser} />
+          )}
+        </Animated.View>
+      </View>
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
   splash: {
     alignItems: 'center',
     backgroundColor: colors.background,

@@ -1,24 +1,36 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react-native';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { formatCurrency, formatPercent, initialsFromTicker } from '../utils/formatters';
+import { getAssetIcon } from '../utils/assetIcons';
 
-export const AssetCard = ({ asset }) => {
+export const AssetCard = ({ asset, onPress }) => {
   const isPositive = asset.returnPercent >= 0;
   const accent = isPositive ? colors.success : colors.danger;
   const VariationIcon = isPositive ? ArrowUpRight : ArrowDownRight;
+  const assetIcon = getAssetIcon(asset.ticker);
 
   return (
-    <View style={styles.card}>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       <View style={styles.left}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initialsFromTicker(asset.ticker)}</Text>
+        <View
+          style={[
+            styles.avatar,
+            assetIcon && {
+              backgroundColor: assetIcon.background,
+              borderColor: assetIcon.border,
+            },
+          ]}
+        >
+          <Text style={[styles.avatarText, assetIcon && { color: assetIcon.foreground }]}>
+            {assetIcon?.label || initialsFromTicker(asset.ticker)}
+          </Text>
         </View>
         <View style={styles.assetInfo}>
           <Text style={styles.ticker}>{asset.ticker}</Text>
           <Text style={styles.meta}>
-            {asset.quantity} cotas | PM {formatCurrency(asset.averagePrice)}
+            {assetIcon?.name ? `${assetIcon.name} | ` : ''}{asset.quantity} cotas | PM {formatCurrency(asset.averagePrice)}
           </Text>
         </View>
       </View>
@@ -30,7 +42,7 @@ export const AssetCard = ({ asset }) => {
           <Text style={[styles.badgeText, { color: accent }]}>{formatPercent(asset.returnPercent)}</Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 };
 
@@ -83,6 +95,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyRegular,
     fontSize: 12,
     marginTop: 5,
+  },
+  pressed: {
+    transform: [{ scale: 0.99 }],
   },
   right: {
     alignItems: 'flex-end',

@@ -1,7 +1,7 @@
-import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { CalendarDays } from 'lucide-react-native';
+import { CalendarDays, ExternalLink } from 'lucide-react-native';
 import { EmptyState } from '../components/EmptyState';
 import { Header } from '../components/Header';
 import { ScreenContainer } from '../components/ScreenContainer';
@@ -12,8 +12,15 @@ import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { formatDate } from '../utils/formatters';
 
-const NewsCard = ({ item }) => (
-  <View style={styles.newsCard}>
+const NewsCard = ({ item }) => {
+  const openSource = async () => {
+    if (item.url) {
+      await Linking.openURL(item.url);
+    }
+  };
+
+  return (
+    <Pressable onPress={openSource} style={({ pressed }) => [styles.newsCard, pressed && styles.pressed]}>
     <View style={styles.newsMetaRow}>
       <Text style={styles.source}>{item.source}</Text>
       <View style={styles.dateRow}>
@@ -29,13 +36,20 @@ const NewsCard = ({ item }) => (
           <Text style={styles.tickerChipText}>{ticker}</Text>
         </View>
       ))}
+      <View style={styles.sourceChip}>
+        <ExternalLink color={colors.mutedForeground} size={11} strokeWidth={1.8} />
+        <Text style={styles.sourceChipText}>Abrir fonte</Text>
+      </View>
     </View>
-  </View>
-);
+  </Pressable>
+  );
+};
 
-export const NewsScreen = () => {
-  const [news, setNews] = useState([]);
+export const NewsScreen = ({ currentUser }) => {
+  const [generalNews, setGeneralNews] = useState([]);
+  const [portfolioNews, setPortfolioNews] = useState([]);
   const [trackedTickers, setTrackedTickers] = useState([]);
+  const [newsScope, setNewsScope] = useState('general');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -44,17 +58,21 @@ export const NewsScreen = () => {
     setError('');
 
     try {
-      const tickers = await getPortfolioTickers();
-      const nextNews = await fetchFinancialNews(tickers);
+      const tickers = await getPortfolioTickers(currentUser.id);
+      const [nextGeneralNews, nextPortfolioNews] = await Promise.all([
+        fetchFinancialNews([]),
+        tickers.length ? fetchFinancialNews(tickers) : Promise.resolve([]),
+      ]);
 
       setTrackedTickers(tickers);
-      setNews(nextNews);
+      setGeneralNews(nextGeneralNews);
+      setPortfolioNews(nextPortfolioNews);
     } catch (loadError) {
-      setError(loadError.message || 'Nao foi possivel carregar noticias.');
+      setError(loadError.message || 'Não foi possível carregar notícias.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentUser.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -62,29 +80,59 @@ export const NewsScreen = () => {
     }, [loadNews]),
   );
 
+  const currentNews = useMemo(
+    () => (newsScope === 'portfolio' ? portfolioNews : generalNews),
+    [generalNews, newsScope, portfolioNews],
+  );
+
   return (
     <ScreenContainer contentContainerStyle={styles.container}>
       <Header
-        title="Noticias"
-        subtitle={trackedTickers.length ? `Filtro: ${trackedTickers.join(', ')}` : 'Resumo financeiro do mercado'}
+        title="Notícias"
+        subtitle={newsScope === 'portfolio' && trackedTickers.length ? `Meus ativos: ${trackedTickers.join(', ')}` : 'Resumo financeiro do mercado'}
       />
 
-      <SectionLabel>Atualizacoes do mercado</SectionLabel>
+      <SectionLabel>Atualizações do mercado</SectionLabel>
+      <View style={styles.filterRow}>
+        <Pressable
+          onPress={() => setNewsScope('general')}
+          style={({ pressed }) => [
+            styles.filterButton,
+            newsScope === 'general' && styles.filterButtonActive,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={[styles.filterText, newsScope === 'general' && styles.filterTextActive]}>Gerais</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setNewsScope('portfolio')}
+          style={({ pressed }) => [
+            styles.filterButton,
+            newsScope === 'portfolio' && styles.filterButtonActive,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={[styles.filterText, newsScope === 'portfolio' && styles.filterTextActive]}>Meus ativos</Text>
+        </Pressable>
+      </View>
 
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator color={colors.foreground} />
-          <Text style={styles.loaderText}>Carregando noticias</Text>
+          <Text style={styles.loaderText}>Carregando notícias</Text>
         </View>
       ) : error ? (
-        <EmptyState title="Falha nas noticias" description={error} />
+        <EmptyState title="Falha nas notícias" description={error} />
       ) : (
         <FlatList
-          data={news}
+          data={currentNews}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <NewsCard item={item} />}
           ListEmptyComponent={
-            <EmptyState title="Nenhuma noticia" description="Nao ha noticias disponiveis para os tickers da carteira." />
+            <EmptyState
+              title="Nenhuma notícia"
+              description={newsScope === 'portfolio' ? 'Não há notícias disponíveis para os tickers da carteira.' : 'Não há notícias gerais disponíveis.'}
+            />
           }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
@@ -97,6 +145,32 @@ export const NewsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 100,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+  },
+  filterButton: {
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    flex: 1,
+    paddingVertical: 10,
+  },
+  filterButtonActive: {
+    backgroundColor: `${colors.success}1F`,
+    borderColor: `${colors.success}59`,
+  },
+  filterText: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+  },
+  filterTextActive: {
+    color: colors.success,
   },
   loader: {
     alignItems: 'center',
@@ -122,6 +196,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     padding: 16,
+  },
+  pressed: {
+    transform: [{ scale: 0.99 }],
   },
   newsMetaRow: {
     alignItems: 'center',
@@ -177,6 +254,22 @@ const styles = StyleSheet.create({
   tickerChipText: {
     color: colors.foreground,
     fontFamily: fonts.monoMedium,
+    fontSize: 10,
+  },
+  sourceChip: {
+    alignItems: 'center',
+    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  sourceChipText: {
+    color: colors.mutedForeground,
+    fontFamily: fonts.bodyMedium,
     fontSize: 10,
   },
 });
