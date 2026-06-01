@@ -34,51 +34,90 @@ export const b3AssetOptions = Object.entries(mockPrices)
 
 export const knownB3Tickers = b3AssetOptions.map((asset) => asset.ticker);
 
-const mockNews = [
+const generalMarketNews = [
   {
-    id: 'macro-juros',
-    title: 'Mercado monitora curva de juros antes de nova decisão do Copom',
+    id: 'macro-selic',
+    title: 'Mercado reduz projeção para juros futuros após dados de inflação',
     source: 'Valor Econômico',
     date: '2026-05-31',
-    summary: 'Investidores ajustam posições em renda variável enquanto avaliam inflação, atividade e comunicados do Banco Central.',
-    tickers: ['PETR4', 'VALE3', 'ITUB4', 'BOVA11'],
+    summary: 'A curva de juros abriu espaço para revisão de expectativas depois de novos indicadores de preços e atividade econômica.',
+    tickers: [],
     url: 'https://valor.globo.com/financas/',
+  },
+  {
+    id: 'b3-volume',
+    title: 'Volume financeiro da B3 avança com maior procura por renda variável',
+    source: 'B3',
+    date: '2026-05-30',
+    summary: 'O aumento de negociações reflete maior participação de investidores pessoa física e rotação entre setores da bolsa.',
+    tickers: [],
+    url: 'https://www.b3.com.br/pt_br/noticias/',
+  },
+  {
+    id: 'dolar-bolsa',
+    title: 'Dólar e bolsa reagem a sinais externos sobre crescimento global',
+    source: 'Exame Invest',
+    date: '2026-05-29',
+    summary: 'Investidores acompanham dados dos Estados Unidos e China para calibrar exposição a mercados emergentes.',
+    tickers: [],
+    url: 'https://exame.com/invest/mercados/',
+  },
+  {
+    id: 'fundos-fluxo',
+    title: 'Fundos multimercado aumentam posição em bolsa brasileira',
+    source: 'InfoMoney',
+    date: '2026-05-28',
+    summary: 'Gestores citam valuation descontado, queda dos juros reais e melhora gradual do apetite a risco.',
+    tickers: [],
+    url: 'https://www.infomoney.com.br/mercados/',
+  },
+];
+
+const assetRelatedNews = [
+  {
+    id: 'petrobras-producao',
+    title: 'Petrobras atualiza plano de produção e mantém disciplina de investimentos',
+    source: 'Money Times',
+    date: '2026-05-31',
+    summary: 'A companhia reforça foco em eficiência operacional, exploração no pré-sal e manutenção da política de remuneração ao acionista.',
+    tickers: ['PETR4', 'PETR3'],
+    url: 'https://www.moneytimes.com.br/empresas/',
+  },
+  {
+    id: 'vale-minerio',
+    title: 'Vale acompanha minério de ferro e demanda chinesa por aço',
+    source: 'Exame Invest',
+    date: '2026-05-30',
+    summary: 'Analistas monitoram estoques, estímulos na China e margens das siderúrgicas para avaliar o desempenho da mineradora.',
+    tickers: ['VALE3'],
+    url: 'https://exame.com/invest/mercados/',
+  },
+  {
+    id: 'itau-credito',
+    title: 'Itaú mantém foco em crédito seletivo e rentabilidade',
+    source: 'InfoMoney',
+    date: '2026-05-29',
+    summary: 'O banco segue priorizando controle de inadimplência, margem financeira e eficiência operacional no varejo.',
+    tickers: ['ITUB4', 'ITUB3'],
+    url: 'https://www.infomoney.com.br/mercados/',
   },
   {
     id: 'fiis-logistica',
     title: 'FIIs de tijolo buscam recompor distribuições com vacância controlada',
     source: 'InfoMoney',
-    date: '2026-05-30',
-    summary: 'Segmentos de galpões logísticos e lajes corporativas mantêm foco em contratos indexados e revisões graduais de aluguel.',
-    tickers: ['HGLG11', 'KNCR11'],
+    date: '2026-05-28',
+    summary: 'Segmentos de galpões logísticos e recebíveis mantêm foco em contratos indexados e revisões graduais de aluguel.',
+    tickers: ['HGLG11', 'KNCR11', 'XPLG11', 'MXRF11'],
     url: 'https://www.infomoney.com.br/onde-investir/fundos-imobiliarios/',
-  },
-  {
-    id: 'commodities',
-    title: 'Commodities fecham mistas e afetam empresas exportadoras na B3',
-    source: 'Exame Invest',
-    date: '2026-05-29',
-    summary: 'Petróleo e minério seguem sensíveis a dados de demanda global, estoques e sinais da economia chinesa.',
-    tickers: ['PETR4', 'VALE3'],
-    url: 'https://exame.com/invest/mercados/',
   },
   {
     id: 'etfs-global',
     title: 'ETFs internacionais ganham espaço em carteiras diversificadas',
     source: 'B3',
-    date: '2026-05-28',
-    summary: 'Produtos listados localmente permitem exposição a índices globais sem remessa direta de recursos ao exterior.',
-    tickers: ['IVVB11', 'BOVA11'],
-    url: 'https://www.b3.com.br/pt_br/produtos-e-servicos/negociacao/renda-variavel/etf/',
-  },
-  {
-    id: 'bancos',
-    title: 'Bancos mantêm rentabilidade em foco diante de crédito seletivo',
-    source: 'Money Times',
     date: '2026-05-27',
-    summary: 'Analistas observam inadimplência, margem financeira e disciplina de custos nas principais instituições listadas.',
-    tickers: ['ITUB4'],
-    url: 'https://www.moneytimes.com.br/mercados/',
+    summary: 'Produtos listados localmente permitem exposição a índices globais sem remessa direta de recursos ao exterior.',
+    tickers: ['IVVB11', 'BOVA11', 'SMAL11'],
+    url: 'https://www.b3.com.br/pt_br/produtos-e-servicos/negociacao/renda-variavel/etf/',
   },
 ];
 
@@ -166,12 +205,12 @@ export const fetchFinancialNews = async (tickers = []) => {
   const normalizedTickers = tickers.map(normalizeTicker).filter(Boolean);
 
   if (!normalizedTickers.length) {
-    return mockNews;
+    return generalMarketNews;
   }
 
-  const filteredNews = mockNews.filter((item) =>
+  const filteredNews = assetRelatedNews.filter((item) =>
     item.tickers.some((ticker) => normalizedTickers.includes(ticker)),
   );
 
-  return filteredNews.length ? filteredNews : mockNews;
+  return filteredNews.length ? filteredNews : [];
 };
