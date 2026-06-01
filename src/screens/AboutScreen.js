@@ -22,26 +22,26 @@ const problemItems = [
 ];
 
 const motivationItems = [
-  'Eu quis criar um aplicativo que fosse simples de apresentar, mas que tivesse um fluxo real de uso.',
+  'O objetivo foi criar um aplicativo simples de apresentar, mas com um fluxo real de uso.',
   'A ideia foi unir cadastro, operações, persistência local, cotações, relatórios e notícias em uma única experiência.',
-  'Também quis trabalhar uma identidade visual mais profissional, com dark theme e foco em dados financeiros.',
+  'A identidade visual foi pensada para transmitir profissionalismo, com dark theme e foco em dados financeiros.',
 ];
 
 const technicalDecisions = [
   {
     icon: Smartphone,
     title: 'React Native com Expo',
-    description: 'Escolhi Expo porque ele facilita a execução em Android e Web. Isso deixa o projeto mais seguro para apresentação, já que posso demonstrar em emulador ou navegador.',
+    description: 'Expo foi utilizado por facilitar a execução em Android e Web, tornando a demonstração mais flexível em emulador ou navegador.',
   },
   {
     icon: Route,
     title: 'Navegação por abas',
-    description: 'Organizei o app em áreas bem objetivas: Carteira, Operar, Relatórios, Notícias e Sobre. Cada aba representa uma parte do fluxo do investidor.',
+    description: 'O app foi organizado em áreas objetivas: Carteira, Operar, Relatórios, Notícias e Sobre. Cada aba representa uma parte do fluxo do investidor.',
   },
   {
     icon: Database,
     title: 'SQLite local',
-    description: 'Usei expo-sqlite para gravar usuários e transações no próprio dispositivo. Assim, as operações continuam salvas mesmo fechando o app.',
+    description: 'O expo-sqlite grava usuários e transações no próprio dispositivo, mantendo as operações salvas mesmo após fechar o app.',
   },
   {
     icon: LineChart,
@@ -51,7 +51,7 @@ const technicalDecisions = [
   {
     icon: BarChart3,
     title: 'Relatórios visuais',
-    description: 'Criei relatórios para mostrar patrimônio, custo, valor atual e distribuição por tipo de ativo. Isso torna a carteira mais fácil de interpretar.',
+    description: 'Os relatórios mostram patrimônio, custo, valor atual e distribuição por tipo de ativo, facilitando a interpretação da carteira.',
   },
   {
     icon: Newspaper,
@@ -110,13 +110,9 @@ export const AboutScreen = () => (
       <Text style={styles.heroEyebrow}>NightBull</Text>
       <Text style={styles.heroTitle}>Minha carteira de investimentos</Text>
       <Text style={styles.heroText}>
-        Eu desenvolvi este aplicativo como uma proposta acadêmica para acompanhar uma carteira de investimentos de forma simples,
-        local e visual. A ideia foi criar algo que parecesse um produto real, mas que também deixasse claro o uso das tecnologias
+        Este aplicativo foi desenvolvido como uma proposta acadêmica para acompanhar uma carteira de investimentos de forma simples,
+        local e visual. A ideia foi criar algo com aparência de produto real, deixando claro o uso das tecnologias
         exigidas no projeto.
-      </Text>
-      <Text style={styles.heroText}>
-        Por isso, esta aba funciona como meu roteiro de apresentação. Em vez de depender de slides, eu consigo explicar o problema,
-        a motivação, as decisões técnicas e as principais funcionalidades diretamente dentro do app.
       </Text>
     </View>
 
@@ -133,8 +129,8 @@ export const AboutScreen = () => (
       </View>
       <Text style={styles.statementTitle}>Centralizar o acompanhamento da carteira</Text>
       <Text style={styles.statementText}>
-        Minha solução foi criar um app em que eu consigo registrar operações, persistir os dados localmente, buscar cotações,
-        calcular preço médio e visualizar a composição da carteira. O objetivo é reduzir a complexidade e mostrar rapidamente
+        A solução proposta centraliza o registro de operações, a persistência local, a busca de cotações,
+        o cálculo de preço médio e a visualização da composição da carteira. O objetivo é reduzir a complexidade e mostrar rapidamente
         as informações que mais importam para o investidor.
       </Text>
     </View>
