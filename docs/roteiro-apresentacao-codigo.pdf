@@ -1,0 +1,199 @@
+%PDF-1.4
+%âãÏÓ
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [ 6 0 R 8 0 R 10 0 R 12 0 R ] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 3619 >>
+stream
+BT /F2 20 Tf 1 0 0 1 50 780 Tm (Roteiro de apresentação do código - NightBull) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 744 Tm (Este material organiza os principais pontos técnicos para apresentar o aplicativo de) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 729 Tm (carteira de investimentos. A ideia é mostrar onde cada parte está no código e como os) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 714 Tm (recursos principais funcionam.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 687 Tm (1. Visão geral do projeto) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 659 Tm (O projeto está organizado dentro da pasta src, separando telas, banco de dados, serviços,) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 644 Tm (navegação, componentes, tema e utilitários. Essa divisão ajuda a explicar o app por) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 629 Tm (responsabilidade, sem misturar lógica de interface, persistência e integração externa.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 610 Tm (- src/screens: telas principais do app.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 592 Tm (- src/database: criação do banco SQLite e consultas.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 574 Tm (- src/services: cotações, notícias e mocks controlados.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 556 Tm (- src/navigation: configuração das abas inferiores.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 538 Tm (- src/components: componentes reutilizáveis.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 520 Tm (- src/theme e src/utils: paleta, tipografia e funções auxiliares.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 494 Tm (2. Arquivo principal do aplicativo) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 466 Tm (O arquivo App.js carrega fontes, inicializa o banco local e decide qual fluxo será) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 451 Tm (exibido. Se não houver usuário autenticado, a tela de login é mostrada. Após o login, o) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 436 Tm (app carrega a navegação principal.) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 417 Tm (initializeDatabase\(\)) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 399 Tm (Essa chamada prepara as tabelas e garante que o SQLite esteja pronto antes de liberar o) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 384 Tm (uso do aplicativo.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 357 Tm (3. Navegação por abas) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 329 Tm (A navegação fica em src/navigation/AppNavigator.js e usa @react-navigation/bottom-tabs. As) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 314 Tm (abas representam o fluxo do usuário: Carteira, Operar, Relatórios, Notícias e Sobre.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 295 Tm (O usuário logado é repassado para as telas que precisam consultar dados específicos da) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 280 Tm (conta.) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 261 Tm (<HomeScreen currentUser={currentUser} />) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 243 Tm (<TradeScreen currentUser={currentUser} />) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 225 Tm (<ReportsScreen currentUser={currentUser} />) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 207 Tm (<NewsScreen currentUser={currentUser} />) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 181 Tm (4. Banco de dados local com SQLite) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 153 Tm (A persistência local está em src/database/database.js. O app usa expo-sqlite para criar e) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 138 Tm (consultar as tabelas users e transactions.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 119 Tm (- users: armazena id, nome, e-mail, senha e data de criação.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 101 Tm (- transactions: armazena user_id, tipo da operação, ticker, quantidade, preço e data.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 83 Tm (O campo user_id é importante porque separa a carteira de cada usuário. Assim, um login não) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 68 Tm (mistura transações de outra conta.) Tj ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 9 0 R >>
+endobj
+9 0 obj
+<< /Length 3687 >>
+stream
+BT /F2 14 Tf 1 0 0 1 50 790 Tm (5. Cadastro e login) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 762 Tm (A tela de autenticação está em src/screens/AuthScreen.js. Ela chama funções do banco para) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 747 Tm (criar usuário ou validar login.) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 728 Tm (createUser\({ name, email, password }\)) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 710 Tm (authenticateUser\({ email, password }\)) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 692 Tm (Quando o login é aceito, o usuário autenticado é enviado ao App.js, que passa a exibir a) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 677 Tm (navegação principal.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 650 Tm (6. Registro de ações, FIIs e ETFs) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 622 Tm (A tela de operação está em src/screens/TradeScreen.js. Nela, o usuário digita parte do) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 607 Tm (ticker e recebe uma lista rolável de ativos compatíveis.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 588 Tm (Depois que o usuário seleciona um ativo, a cotação é carregada automaticamente. O botão) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 573 Tm (manual de buscar cotação foi removido porque a seleção do ativo já dispara a consulta.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 554 Tm (- O usuário escolhe o ativo na lista.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 536 Tm (- A cotação atual é carregada como sugestão.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 518 Tm (- O preço pago pode ser alterado manualmente.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 500 Tm (- A operação é salva como BUY ou SELL no SQLite.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 474 Tm (7. Como a API da Brapi é chamada) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 446 Tm (A integração com a API fica em src/services/marketApi.js, principalmente na função) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 431 Tm (fetchQuote.) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 412 Tm (const response = await fetch\(`${BRAPI_BASE_URL}/${cleanTicker}`\);) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 394 Tm (A URL usada segue o formato https://brapi.dev/api/quote/{ticker}. Depois da resposta, o) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 379 Tm (app lê o JSON e extrai o primeiro resultado retornado pela API.) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 360 Tm (const payload = await response.json\(\);) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 342 Tm (const result = payload?.results?.[0];) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 324 Tm (O retorno é padronizado com ticker, preço, variação, nome do ativo e a origem da cotação.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 309 Tm (Se a Brapi falhar, alguns ativos conhecidos usam fallback local para não quebrar a) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 294 Tm (apresentação.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 267 Tm (8. Como a transação é salva) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 239 Tm (A gravação acontece pela função addTransaction, em src/database/database.js. Ela recebe) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 224 Tm (userId, tipo, ticker, quantidade, preço e data.) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 205 Tm (await addTransaction\({ userId, type, ticker, quantity, price, date }\);) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 187 Tm (O preço salvo é o preço pago informado pelo usuário, não necessariamente a cotação atual.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 172 Tm (Isso é importante porque uma compra real pode ter sido feita em outro momento.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 145 Tm (9. Como a carteira é calculada) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 117 Tm (A função calculatePositions percorre as transações do usuário e agrupa tudo por ticker.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 102 Tm (Nas compras, aumenta quantidade e custo total. Nas vendas, reduz a quantidade e ajusta o) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 87 Tm (custo usando o preço médio.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 68 Tm (- Calcula quantidade atual.) Tj ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 11 0 R >>
+endobj
+11 0 obj
+<< /Length 3314 >>
+stream
+BT /F1 10.5 Tf 1 0 0 1 50 790 Tm (- Calcula custo total remanescente.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 772 Tm (- Calcula preço médio.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 754 Tm (- Guarda compras e vendas acumuladas.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 736 Tm (- Calcula resultado realizado em vendas.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 710 Tm (10. Tela Carteira) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 682 Tm (A tela Carteira fica em src/screens/HomeScreen.js. Ela lê as posições atuais, busca) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 667 Tm (cotações, calcula patrimônio total e mostra os cards dos ativos.) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 648 Tm (getCurrentPositions\(currentUser.id\)) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 630 Tm (fetchQuotes\(...\)) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 612 Tm (A mesma tela também mostra histórico de transações e permite abrir o detalhe de um ativo) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 597 Tm (tocando no card.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 570 Tm (11. Detalhe do ativo) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 542 Tm (O detalhe do ativo está dentro da HomeScreen, no componente AssetDetail. Ele mostra preço) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 527 Tm (médio, preço atual, custo remanescente, resultado não realizado, compras, vendas e) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 512 Tm (histórico específico daquele ticker.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 485 Tm (12. Relatórios) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 457 Tm (A tela de relatórios está em src/screens/ReportsScreen.js. Ela lê as posições, atualiza os) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 442 Tm (preços e monta os dados visuais.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 423 Tm (A classificação por tipo fica em src/utils/assetClassifier.js, separando ações, FIIs, ETFs) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 408 Tm (e outros.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 389 Tm (- Gráficos de pizza são desenhados com react-native-svg.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 371 Tm (- O gráfico de custo vs. valor atual foi feito com Views customizadas.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 353 Tm (- Os cards mostram total investido, valor atual, resultado e quantidade de ativos.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 327 Tm (13. Notícias) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 299 Tm (A tela de notícias fica em src/screens/NewsScreen.js. O serviço de notícias fica em) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 284 Tm (src/services/marketApi.js.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 265 Tm (Existem duas listas mockadas: notícias gerais de mercado e notícias relacionadas aos) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 250 Tm (ativos da carteira. O filtro da tela alterna entre Gerais e Meus ativos.) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 231 Tm (newsScope === "portfolio" ? portfolioNews : generalNews) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 205 Tm (14. Como abre o site ao clicar na notícia) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 177 Tm (Cada card de notícia é um Pressable. Ao tocar no card, a função openSource usa) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 162 Tm (Linking.openURL para abrir a fonte externa.) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 143 Tm (import { Linking } from "react-native";) Tj ET
+BT /F3 9.5 Tf 1 0 0 1 50 125 Tm (await Linking.openURL\(item.url\);) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 107 Tm (Dessa forma, o app mantém um card estilizado internamente, mas leva o usuário para a fonte) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 92 Tm (original quando ele quer ler mais.) Tj ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents 13 0 R >>
+endobj
+13 0 obj
+<< /Length 1881 >>
+stream
+BT /F2 14 Tf 1 0 0 1 50 790 Tm (15. Tema visual) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 762 Tm (As cores e fontes ficam centralizadas em src/theme/colors.js e src/theme/typography.js.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 747 Tm (Isso evita repetir valores espalhados pelo app e ajuda a manter o dark theme consistente.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 720 Tm (16. Componentes reutilizáveis) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 692 Tm (A pasta src/components concentra elementos usados em várias telas, como Header,) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 677 Tm (ScreenContainer, SectionLabel, EmptyState e AssetCard.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 658 Tm (- ScreenContainer padroniza fundo, scroll e espaçamento.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 640 Tm (- Header padroniza título e marca visual.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 622 Tm (- AssetCard mostra ticker, quantidade, preço médio, preço atual e variação.) Tj ET
+BT /F2 14 Tf 1 0 0 1 50 596 Tm (17. Sequência sugerida para apresentar o código) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 568 Tm (- Começar pelo App.js para explicar inicialização, fontes, banco e autenticação.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 550 Tm (- Abrir AppNavigator.js para mostrar a navegação por abas.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 532 Tm (- Abrir database.js para explicar users, transactions e user_id.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 514 Tm (- Abrir TradeScreen.js para mostrar autocomplete, cotação e registro da operação.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 496 Tm (- Abrir marketApi.js para explicar Brapi, fallback e notícias.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 478 Tm (- Abrir HomeScreen.js para explicar agrupamento por ticker e cálculo da carteira.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 460 Tm (- Abrir ReportsScreen.js para mostrar gráficos e classificação por tipo.) Tj ET
+BT /F1 10.5 Tf 1 0 0 1 50 442 Tm (- Abrir NewsScreen.js para mostrar filtros e Linking.openURL.) Tj ET
+endstream
+endobj
+xref
+0 14
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000143 00000 n 
+0000000240 00000 n 
+0000000342 00000 n 
+0000000437 00000 n 
+0000000583 00000 n 
+0000004253 00000 n 
+0000004399 00000 n 
+0000008137 00000 n 
+0000008285 00000 n 
+0000011651 00000 n 
+0000011799 00000 n 
+trailer
+<< /Size 14 /Root 1 0 R >>
+startxref
+13732
+%%EOF
